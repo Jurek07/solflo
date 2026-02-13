@@ -26,6 +26,12 @@ const nextConfig = {
         zlib: require.resolve('browserify-zlib'),
       };
 
+      // Replace node-localstorage with browser localStorage
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
+      };
+
       // Add plugin to provide Buffer and process globally
       config.plugins.push(
         new webpack.ProvidePlugin({
