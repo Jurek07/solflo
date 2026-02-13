@@ -18,7 +18,10 @@ interface ProvidersProps {
 
 export const Providers: FC<ProvidersProps> = ({ children }) => {
   // Use mainnet for production (required for Privacy Cash)
-  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
+  // Ankr provides free public RPC
+  const endpoint = useMemo(() => 
+    process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.ankr.com/solana'
+  , []);
 
   const wallets = useMemo(
     () => [
