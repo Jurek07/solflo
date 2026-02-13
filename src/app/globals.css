@@ -148,6 +148,46 @@ body {
   color: var(--text) !important;
 }
 
+.wallet-adapter-modal-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.wallet-adapter-modal-list li {
+  background: #000 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.wallet-adapter-modal-list li:hover {
+  border-color: var(--green) !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: transparent !important;
+  color: var(--text) !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  padding: 12px 16px !important;
+  height: auto !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: transparent !important;
+}
+
+.wallet-adapter-modal-list-more {
+  color: var(--text-secondary) !important;
+}
+
+.wallet-adapter-modal-list-more:hover {
+  color: var(--text) !important;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
