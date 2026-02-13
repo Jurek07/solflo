@@ -169,19 +169,45 @@ export default function PayPage() {
       const privacycash: any = await import('privacycash');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      console.log('privacycash module:', privacycash);
-      console.log('hasher module:', hasher);
+      console.log('privacycash module keys:', Object.keys(privacycash));
+      console.log('privacycash full:', JSON.stringify(Object.keys(privacycash)));
       
-      // Handle both default and named exports
-      const EncryptionService = privacycash.EncryptionService || privacycash.default?.EncryptionService;
-      const deposit = privacycash.deposit || privacycash.default?.deposit;
-      const withdraw = privacycash.withdraw || privacycash.default?.withdraw;
-      const depositSPL = privacycash.depositSPL || privacycash.default?.depositSPL;
-      const withdrawSPL = privacycash.withdrawSPL || privacycash.default?.withdrawSPL;
+      // Try accessing via different paths
+      let EncryptionService = privacycash.EncryptionService;
+      let deposit = privacycash.deposit;
+      let withdraw = privacycash.withdraw;
+      let depositSPL = privacycash.depositSPL;
+      let withdrawSPL = privacycash.withdrawSPL;
+      
+      // If not found, try default
+      if (!EncryptionService && privacycash.default) {
+        console.log('Trying default export, keys:', Object.keys(privacycash.default));
+        EncryptionService = privacycash.default.EncryptionService;
+        deposit = privacycash.default.deposit;
+        withdraw = privacycash.default.withdraw;
+        depositSPL = privacycash.default.depositSPL;
+        withdrawSPL = privacycash.default.withdrawSPL;
+      }
+      
+      // Try utils path as mentioned in package.json exports
+      if (!EncryptionService) {
+        try {
+          const utils: any = await import('privacycash/utils');
+          console.log('utils keys:', Object.keys(utils));
+          EncryptionService = utils.EncryptionService;
+        } catch (e) {
+          console.log('No utils subpath');
+        }
+      }
+
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
 
-      console.log('EncryptionService:', EncryptionService);
-      console.log('WasmFactory:', WasmFactory);
+      console.log('Final EncryptionService:', EncryptionService);
+      console.log('Final deposit:', deposit);
+      
+      if (!EncryptionService) {
+        throw new Error('EncryptionService not found in privacycash module');
+      }
 
       const lightWasm = await WasmFactory.getInstance();
 
