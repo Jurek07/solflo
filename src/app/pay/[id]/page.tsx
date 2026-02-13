@@ -16,6 +16,7 @@ import {
   shortenAddress 
 } from '@/lib/solana';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 type PaymentStatus = 'idle' | 'processing' | 'confirming' | 'success' | 'error';
 
@@ -147,14 +148,8 @@ export default function PayPage() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="px-5 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#00D26A] rounded-lg flex items-center justify-center">
-            <span className="text-black font-bold text-sm">S</span>
-          </div>
-          <span className="text-xl font-semibold">
-            <span className="text-white">sol</span>
-            <span className="text-[#00D26A]">flo</span>
-          </span>
+        <Link href="/">
+          <Logo />
         </Link>
         <WalletMultiButton />
       </header>

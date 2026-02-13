@@ -3,6 +3,7 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export default function Home() {
   const { connected } = useWallet();
@@ -11,15 +12,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="px-5 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#00D26A] rounded-lg flex items-center justify-center">
-            <span className="text-black font-bold text-sm">S</span>
-          </div>
-          <span className="text-xl font-semibold">
-            <span className="text-white">sol</span>
-            <span className="text-[#00D26A]">flo</span>
-          </span>
-        </div>
+        <Logo />
         <WalletMultiButton />
       </header>
 

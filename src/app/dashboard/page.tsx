@@ -10,6 +10,7 @@ import { PaymentLink } from '@/types';
 import { getPaymentLinksByWallet } from '@/lib/supabase';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { LinkCard } from '@/components/LinkCard';
+import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 
 export default function Dashboard() {
@@ -71,14 +72,8 @@ export default function Dashboard() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="px-5 py-4 flex justify-between items-center border-b border-[#1A1A1A]">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#00D26A] rounded-lg flex items-center justify-center">
-            <span className="text-black font-bold text-sm">S</span>
-          </div>
-          <span className="text-xl font-semibold">
-            <span className="text-white">sol</span>
-            <span className="text-[#00D26A]">flo</span>
-          </span>
+        <Link href="/">
+          <Logo />
         </Link>
         <WalletMultiButton />
       </header>
