@@ -1,40 +1,49 @@
 'use client';
 
 import { useState } from 'react';
-import { useStore } from '@/lib/store';
+import { createPaymentLink } from '@/lib/supabase';
 import { Currency } from '@/types';
 
 interface CreateLinkModalProps {
   onClose: () => void;
+  onCreated: () => void;
   merchantWallet: string;
 }
 
-export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProps) {
+export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLinkModalProps) {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<Currency>('SOL');
   const [description, setDescription] = useState('');
+  const [singleUse, setSingleUse] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
-
-  const createLink = useStore((s) => s.createLink);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreating(true);
+    setError(null);
 
     try {
-      const link = createLink(merchantWallet, {
+      const link = await createPaymentLink({
+        merchantWallet,
         title,
         amount: parseFloat(amount),
         currency,
         description: description || undefined,
+        singleUse,
       });
 
-      const linkUrl = `${window.location.origin}/pay/${link.id}`;
-      setCreatedLink(linkUrl);
+      if (link) {
+        const linkUrl = `${window.location.origin}/pay/${link.id}`;
+        setCreatedLink(linkUrl);
+      } else {
+        setError('Failed to create payment link. Please try again.');
+      }
     } catch (err) {
       console.error('Failed to create link:', err);
+      setError('Failed to create payment link. Please try again.');
     } finally {
       setIsCreating(false);
     }
@@ -44,6 +53,10 @@ export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProp
     if (createdLink) {
       navigator.clipboard.writeText(createdLink);
     }
+  };
+
+  const handleDone = () => {
+    onCreated();
   };
 
   return (
@@ -59,6 +72,12 @@ export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProp
             <div className="bg-sol-dark rounded-lg p-3 mb-4 break-all text-sm">
               {createdLink}
             </div>
+
+            {singleUse && (
+              <p className="text-sm text-yellow-400 mb-4">
+                ⚡ Single-use: This link will expire after one payment
+              </p>
+            )}
             
             <div className="flex gap-3">
               <button
@@ -68,7 +87,7 @@ export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProp
                 Copy Link
               </button>
               <button
-                onClick={onClose}
+                onClick={handleDone}
                 className="flex-1 px-4 py-3 bg-gray-700 rounded-lg font-semibold hover:bg-gray-600 transition"
               >
                 Done
@@ -87,6 +106,12 @@ export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProp
                 ✕
               </button>
             </div>
+
+            {error && (
+              <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 mb-4 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
@@ -149,6 +174,27 @@ export function CreateLinkModal({ onClose, merchantWallet }: CreateLinkModalProp
                     className="w-full px-4 py-3 bg-sol-dark rounded-lg border border-gray-700 focus:border-sol-purple focus:outline-none resize-none"
                     rows={3}
                   />
+                </div>
+
+                {/* Single Use Toggle */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium">Single-use link</label>
+                    <p className="text-xs text-gray-400">Link expires after one payment</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSingleUse(!singleUse)}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      singleUse ? 'bg-sol-purple' : 'bg-gray-600'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        singleUse ? 'translate-x-6' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
 

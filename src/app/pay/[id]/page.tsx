@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PublicKey } from '@solana/web3.js';
-import { useStore } from '@/lib/store';
+import { PaymentLink } from '@/types';
+import { getPaymentLink, recordPayment } from '@/lib/supabase';
 import { 
   createSolTransferTransaction, 
   createUsdcTransferTransaction,
@@ -24,18 +25,30 @@ export default function PayPage() {
   const { connection } = useConnection();
   
   const [mounted, setMounted] = useState(false);
+  const [link, setLink] = useState<PaymentLink | null>(null);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<PaymentStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [txSignature, setTxSignature] = useState<string | null>(null);
-  
-  const link = useStore((s) => s.getLink(linkId));
-  const recordPayment = useStore((s) => s.recordPayment);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  useEffect(() => {
+    if (mounted && linkId) {
+      loadLink();
+    }
+  }, [mounted, linkId]);
+
+  const loadLink = async () => {
+    setLoading(true);
+    const data = await getPaymentLink(linkId);
+    setLink(data);
+    setLoading(false);
+  };
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-400">Loading...</div>
@@ -49,6 +62,25 @@ export default function PayPage() {
         <div className="text-6xl mb-6">🔍</div>
         <h1 className="text-2xl font-bold mb-2">Payment Link Not Found</h1>
         <p className="text-gray-400 mb-6">This link may have expired or been deleted.</p>
+        <Link 
+          href="/"
+          className="px-6 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition"
+        >
+          Create Your Own Link
+        </Link>
+      </div>
+    );
+  }
+
+  // Check if single-use link is already used
+  const isExpired = link.singleUse && link.used;
+
+  if (isExpired) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="text-6xl mb-6">✅</div>
+        <h1 className="text-2xl font-bold mb-2">Payment Already Completed</h1>
+        <p className="text-gray-400 mb-6">This payment link has already been used.</p>
         <Link 
           href="/"
           className="px-6 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition"
@@ -92,13 +124,13 @@ export default function PayPage() {
       const confirmed = await confirmTransaction(connection, signature);
 
       if (confirmed) {
-        // Record the payment
-        recordPayment(link.id, {
+        // Record the payment in database
+        await recordPayment({
+          linkId: link.id,
           payerWallet: publicKey.toString(),
           amount: link.amount,
           currency: link.currency,
           signature,
-          confirmedAt: new Date().toISOString(),
         });
         setStatus('success');
       } else {
@@ -166,6 +198,12 @@ export default function PayPage() {
                     <span className="text-xl ml-2 text-gray-400">{link.currency}</span>
                   </div>
                 </div>
+
+                {link.singleUse && (
+                  <div className="text-sm text-yellow-400 text-center mb-4">
+                    ⚡ Single-use link — expires after payment
+                  </div>
+                )}
 
                 <div className="text-sm text-gray-400 mb-4 text-center">
                   Paying to: {shortenAddress(link.merchantWallet)}

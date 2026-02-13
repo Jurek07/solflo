@@ -7,6 +7,8 @@ export interface PaymentLink {
   currency: Currency;
   title: string;
   description?: string;
+  singleUse: boolean;
+  used: boolean;
   createdAt: string;
   payments: Payment[];
 }
@@ -19,11 +21,4 @@ export interface Payment {
   currency: Currency;
   signature: string;
   confirmedAt: string;
-}
-
-export interface MerchantProfile {
-  wallet: string;
-  displayName?: string;
-  links: PaymentLink[];
-  createdAt: string;
 }

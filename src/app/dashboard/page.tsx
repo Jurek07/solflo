@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useRouter } from 'next/navigation';
-import { useStore } from '@/lib/store';
+import { PaymentLink } from '@/types';
+import { getPaymentLinksByWallet } from '@/lib/supabase';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { LinkCard } from '@/components/LinkCard';
 
@@ -13,10 +14,16 @@ export default function Dashboard() {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
-  const links = useStore((s) => 
-    publicKey ? s.getLinksByWallet(publicKey.toString()) : []
-  );
+  const [links, setLinks] = useState<PaymentLink[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchLinks = useCallback(async () => {
+    if (!publicKey) return;
+    setLoading(true);
+    const data = await getPaymentLinksByWallet(publicKey.toString());
+    setLinks(data);
+    setLoading(false);
+  }, [publicKey]);
 
   useEffect(() => {
     setMounted(true);
@@ -27,6 +34,12 @@ export default function Dashboard() {
       router.push('/');
     }
   }, [connected, mounted, router]);
+
+  useEffect(() => {
+    if (mounted && connected && publicKey) {
+      fetchLinks();
+    }
+  }, [mounted, connected, publicKey, fetchLinks]);
 
   if (!mounted || !connected || !publicKey) {
     return (
@@ -41,6 +54,15 @@ export default function Dashboard() {
   }, 0);
 
   const totalPayments = links.reduce((sum, link) => sum + link.payments.length, 0);
+
+  const handleLinkCreated = () => {
+    setShowCreateModal(false);
+    fetchLinks();
+  };
+
+  const handleLinkDeleted = () => {
+    fetchLinks();
+  };
 
   return (
     <div className="min-h-screen">
@@ -85,7 +107,11 @@ export default function Dashboard() {
         </div>
 
         {/* Links List */}
-        {links.length === 0 ? (
+        {loading ? (
+          <div className="bg-sol-gray rounded-xl p-12 text-center">
+            <div className="text-gray-400">Loading your payment links...</div>
+          </div>
+        ) : links.length === 0 ? (
           <div className="bg-sol-gray rounded-xl p-12 text-center">
             <div className="text-4xl mb-4">💸</div>
             <h3 className="text-xl font-semibold mb-2">No payment links yet</h3>
@@ -102,7 +128,7 @@ export default function Dashboard() {
         ) : (
           <div className="grid gap-4">
             {links.map((link) => (
-              <LinkCard key={link.id} link={link} />
+              <LinkCard key={link.id} link={link} onDeleted={handleLinkDeleted} />
             ))}
           </div>
         )}
@@ -112,6 +138,7 @@ export default function Dashboard() {
       {showCreateModal && (
         <CreateLinkModal
           onClose={() => setShowCreateModal(false)}
+          onCreated={handleLinkCreated}
           merchantWallet={publicKey.toString()}
         />
       )}
