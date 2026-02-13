@@ -150,6 +150,7 @@ export default function PayPage() {
         currency: link.currency,
         signature,
         isPrivate: false,
+        merchantWallet: link.merchantWallet,
       });
       setStatus('success');
     } else {
@@ -268,6 +269,7 @@ export default function PayPage() {
         currency: link.currency,
         signature: sig,
         isPrivate: true,
+        merchantWallet: link.merchantWallet,
       });
 
       setStatus('success');

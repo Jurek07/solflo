@@ -101,6 +101,7 @@ export async function recordPayment(data: {
   currency: 'SOL' | 'USDC';
   signature: string;
   isPrivate?: boolean;
+  merchantWallet?: string;
 }): Promise<Payment | null> {
   const { data: payment, error } = await getSupabase()
     .from('payments')
@@ -118,6 +119,21 @@ export async function recordPayment(data: {
   if (error) {
     console.error('Error recording payment:', error);
     return null;
+  }
+
+  // Log transaction for admin stats (persists even if link is deleted)
+  if (data.merchantWallet) {
+    await getSupabase()
+      .from('transaction_log')
+      .insert({
+        link_id: data.linkId,
+        merchant_wallet: data.merchantWallet,
+        payer_wallet: data.isPrivate ? 'private' : data.payerWallet,
+        amount: data.amount,
+        currency: data.currency,
+        signature: data.signature,
+        is_private: data.isPrivate || false,
+      });
   }
 
   // If single-use, mark the link as used
