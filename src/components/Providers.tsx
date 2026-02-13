@@ -17,8 +17,8 @@ interface ProvidersProps {
 }
 
 export const Providers: FC<ProvidersProps> = ({ children }) => {
-  // Use devnet for development, mainnet-beta for production
-  const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
+  // Use mainnet for production (required for Privacy Cash)
+  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
 
   const wallets = useMemo(
     () => [
