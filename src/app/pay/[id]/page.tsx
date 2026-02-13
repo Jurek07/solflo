@@ -192,13 +192,16 @@ export default function PayPage() {
         ? Math.round(link.amount * LAMPORTS_PER_SOL)
         : Math.round(link.amount * 1_000_000); // USDC decimals
 
+      // Circuit files hosted on Privacy Cash CDN
+      const circuitBasePath = 'https://privacycash.org/circuit2';
+      
       // Step 1: Deposit to private pool
       if (link.currency === 'SOL') {
         await deposit({
           lightWasm,
           connection,
           amount_in_lamports: amountInSmallestUnit,
-          keyBasePath: '/circuit2',
+          keyBasePath: circuitBasePath,
           publicKey,
           transactionSigner: async (tx: any) => {
             return await signTransaction(tx);
@@ -213,7 +216,7 @@ export default function PayPage() {
           lightWasm,
           connection,
           base_units: amountInSmallestUnit,
-          keyBasePath: '/circuit2',
+          keyBasePath: circuitBasePath,
           publicKey,
           transactionSigner: async (tx: any) => {
             return await signTransaction(tx);
@@ -233,7 +236,7 @@ export default function PayPage() {
           amount_in_lamports: amountInSmallestUnit,
           connection,
           encryptionService,
-          keyBasePath: '/circuit2',
+          keyBasePath: circuitBasePath,
           publicKey,
           storage: localStorage,
           recipient: link.merchantWallet,
@@ -244,7 +247,7 @@ export default function PayPage() {
         withdrawResult = await withdrawSPL({
           connection,
           encryptionService,
-          keyBasePath: '/circuit2',
+          keyBasePath: circuitBasePath,
           publicKey,
           storage: localStorage,
           recipient: link.merchantWallet,
