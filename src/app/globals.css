@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sol-purple: #9945FF;
+  --sol-green: #14F195;
+}
+
+body {
+  background: #0D0D0D;
+  color: #FFFFFF;
+}
+
+/* Solana wallet adapter overrides */
+.wallet-adapter-button {
+  background: linear-gradient(135deg, var(--sol-purple), var(--sol-green)) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #1A1A1A !important;
+}
