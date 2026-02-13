@@ -165,11 +165,9 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Dynamic import Privacy Cash SDK using eval to bypass webpack
-      const loadSDK = new Function('return import("privacycash")');
-      const loadHasher = new Function('return import("@lightprotocol/hasher.rs")');
-      
-      const [privacycash, hasher] = await Promise.all([loadSDK(), loadHasher()]);
+      // Dynamic import Privacy Cash SDK
+      const privacycash = await import('privacycash');
+      const hasher = await import('@lightprotocol/hasher.rs');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = privacycash;
       const { WasmFactory } = hasher;

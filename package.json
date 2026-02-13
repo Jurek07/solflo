@@ -21,14 +21,25 @@
     "@solana/spl-token": "^0.4.0",
     "@supabase/supabase-js": "^2.39.0",
     "nanoid": "^5.0.5",
-    "privacycash": "^1.1.16"
+    "privacycash": "^1.1.16",
+    "path-browserify": "^1.0.1",
+    "crypto-browserify": "^3.12.0",
+    "stream-browserify": "^3.0.0",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "os-browserify": "^0.3.0",
+    "url": "^0.11.3",
+    "assert": "^2.1.0",
+    "util": "^0.12.5",
+    "stream-http": "^3.2.0",
+    "https-browserify": "^1.0.0",
+    "browserify-zlib": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.17",
-    "null-loader": "^4.0.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.0"
