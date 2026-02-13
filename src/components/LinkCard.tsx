@@ -54,11 +54,7 @@ export function LinkCard({ link, onDeleted }: LinkCardProps) {
                 {isExpired ? 'Used' : '1-time'}
               </span>
             )}
-            {link.privatePayment && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400">
-                🔒 Private
-              </span>
-            )}
+            {/* Private badge hidden for now - will be added as feature later */}
           </div>
           {link.description && (
             <div className="text-sm text-[#6B6B6B] mt-0.5">{link.description}</div>
