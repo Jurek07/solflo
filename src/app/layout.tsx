@@ -8,6 +8,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'SolFloLab - Solana Payment Links',
   description: 'Create payment links and get paid in SOL or USDC in seconds.',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/logo-icon.svg',
+  },
 };
 
 export default function RootLayout({
