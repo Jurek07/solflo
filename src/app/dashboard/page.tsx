@@ -10,6 +10,7 @@ import { PaymentLink } from '@/types';
 import { getPaymentLinksByWallet } from '@/lib/supabase';
 import { CreateLinkModal } from '@/components/CreateLinkModal';
 import { LinkCard } from '@/components/LinkCard';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { publicKey, connected } = useWallet();
@@ -69,60 +70,66 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-gray-800 px-6 py-4">
+      <header className="border-b border-[#262626] px-6 py-4 backdrop-blur-sm bg-[#0a0a0a]/80 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-sol-purple to-sol-green bg-clip-text text-transparent">
-            Solflo
-          </h1>
+          <Link href="/">
+            <h1 className="text-2xl font-bold gradient-text">
+              Solflo
+            </h1>
+          </Link>
           <WalletMultiButton />
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-sol-gray rounded-xl p-6">
-            <div className="text-gray-400 text-sm mb-1">Payment Links</div>
-            <div className="text-3xl font-bold">{links.length}</div>
+        {/* Page Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-bold mb-1">Dashboard</h2>
+            <p className="text-gray-500">Manage your payment links</p>
           </div>
-          <div className="bg-sol-gray rounded-xl p-6">
-            <div className="text-gray-400 text-sm mb-1">Total Payments</div>
-            <div className="text-3xl font-bold">{totalPayments}</div>
-          </div>
-          <div className="bg-sol-gray rounded-xl p-6">
-            <div className="text-gray-400 text-sm mb-1">Total Received</div>
-            <div className="text-3xl font-bold text-sol-green">
-              ${totalReceived.toFixed(2)}
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Your Payment Links</h2>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition"
+            className="btn-primary"
           >
             + Create Link
           </button>
         </div>
 
+        {/* Stats */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="card">
+            <div className="text-gray-400 text-sm mb-1">Payment Links</div>
+            <div className="text-3xl font-bold">{links.length}</div>
+          </div>
+          <div className="card">
+            <div className="text-gray-400 text-sm mb-1">Total Payments</div>
+            <div className="text-3xl font-bold">{totalPayments}</div>
+          </div>
+          <div className="card">
+            <div className="text-gray-400 text-sm mb-1">Total Received</div>
+            <div className="text-3xl font-bold gradient-text">
+              {totalReceived.toFixed(4)}
+            </div>
+          </div>
+        </div>
+
         {/* Links List */}
         {loading ? (
-          <div className="bg-sol-gray rounded-xl p-12 text-center">
+          <div className="card text-center py-16">
+            <div className="inline-block w-8 h-8 border-2 border-[#9945FF] border-t-transparent rounded-full animate-spin mb-4"></div>
             <div className="text-gray-400">Loading your payment links...</div>
           </div>
         ) : links.length === 0 ? (
-          <div className="bg-sol-gray rounded-xl p-12 text-center">
-            <div className="text-4xl mb-4">💸</div>
+          <div className="card text-center py-16">
+            <div className="text-5xl mb-4">💸</div>
             <h3 className="text-xl font-semibold mb-2">No payment links yet</h3>
             <p className="text-gray-400 mb-6">
               Create your first payment link to start receiving SOL or USDC
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition"
+              className="btn-primary"
             >
               Create Your First Link
             </button>

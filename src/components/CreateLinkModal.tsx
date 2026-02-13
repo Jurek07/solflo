@@ -18,6 +18,7 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
   const [singleUse, setSingleUse] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +53,8 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
   const copyLink = () => {
     if (createdLink) {
       navigator.clipboard.writeText(createdLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -60,36 +63,33 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-sol-gray rounded-2xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div className="card w-full max-w-md">
         {createdLink ? (
           // Success state
           <div className="text-center">
-            <div className="text-5xl mb-4">🎉</div>
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#9945FF]/20 to-[#14F195]/20 flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">✓</span>
+            </div>
             <h2 className="text-2xl font-bold mb-2">Link Created!</h2>
             <p className="text-gray-400 mb-6">Share this link to receive payments</p>
             
-            <div className="bg-sol-dark rounded-lg p-3 mb-4 break-all text-sm">
+            <div className="bg-[#0a0a0a] border border-[#262626] rounded-xl p-4 mb-4 break-all text-sm text-left font-mono">
               {createdLink}
             </div>
 
             {singleUse && (
-              <p className="text-sm text-yellow-400 mb-4">
-                ⚡ Single-use: This link will expire after one payment
-              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-yellow-400 mb-6">
+                <span>⚡</span>
+                <span>Single-use: expires after one payment</span>
+              </div>
             )}
             
             <div className="flex gap-3">
-              <button
-                onClick={copyLink}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition"
-              >
-                Copy Link
+              <button onClick={copyLink} className="btn-primary flex-1">
+                {copied ? '✓ Copied!' : 'Copy Link'}
               </button>
-              <button
-                onClick={handleDone}
-                className="flex-1 px-4 py-3 bg-gray-700 rounded-lg font-semibold hover:bg-gray-600 transition"
-              >
+              <button onClick={handleDone} className="btn-secondary flex-1">
                 Done
               </button>
             </div>
@@ -101,31 +101,31 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
               <h2 className="text-xl font-bold">Create Payment Link</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white"
+                className="w-8 h-8 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center transition"
               >
                 ✕
               </button>
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 mb-4 text-red-400 text-sm">
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-400 text-sm">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {/* Title */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Title *
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Title
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g., Logo Design, Consulting Hour"
-                    className="w-full px-4 py-3 bg-sol-dark rounded-lg border border-gray-700 focus:border-sol-purple focus:outline-none"
+                    className="input"
                     required
                   />
                 </div>
@@ -133,8 +133,8 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                 {/* Amount & Currency */}
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <label className="block text-sm text-gray-400 mb-1">
-                      Amount *
+                    <label className="block text-sm text-gray-400 mb-2">
+                      Amount
                     </label>
                     <input
                       type="number"
@@ -143,18 +143,18 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-4 py-3 bg-sol-dark rounded-lg border border-gray-700 focus:border-sol-purple focus:outline-none"
+                      className="input"
                       required
                     />
                   </div>
                   <div className="w-28">
-                    <label className="block text-sm text-gray-400 mb-1">
+                    <label className="block text-sm text-gray-400 mb-2">
                       Currency
                     </label>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value as Currency)}
-                      className="w-full px-4 py-3 bg-sol-dark rounded-lg border border-gray-700 focus:border-sol-purple focus:outline-none"
+                      className="input"
                     >
                       <option value="SOL">SOL</option>
                       <option value="USDC">USDC</option>
@@ -164,34 +164,36 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Description (optional)
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Description <span className="text-gray-600">(optional)</span>
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Add details about what this payment is for..."
-                    className="w-full px-4 py-3 bg-sol-dark rounded-lg border border-gray-700 focus:border-sol-purple focus:outline-none resize-none"
+                    className="input resize-none"
                     rows={3}
                   />
                 </div>
 
                 {/* Single Use Toggle */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-xl border border-[#262626]">
                   <div>
                     <label className="text-sm font-medium">Single-use link</label>
-                    <p className="text-xs text-gray-400">Link expires after one payment</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Expires after one payment</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSingleUse(!singleUse)}
-                    className={`w-12 h-6 rounded-full transition-colors ${
-                      singleUse ? 'bg-sol-purple' : 'bg-gray-600'
+                    className={`w-12 h-7 rounded-full transition-all ${
+                      singleUse 
+                        ? 'bg-gradient-to-r from-[#9945FF] to-[#14F195]' 
+                        : 'bg-[#262626]'
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                        singleUse ? 'translate-x-6' : 'translate-x-0.5'
+                      className={`w-5 h-5 bg-white rounded-full transition-all shadow-lg ${
+                        singleUse ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -201,9 +203,16 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
               <button
                 type="submit"
                 disabled={isCreating || !title || !amount}
-                className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-sol-purple to-sol-green rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary w-full mt-6"
               >
-                {isCreating ? 'Creating...' : 'Create Payment Link'}
+                {isCreating ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Creating...
+                  </span>
+                ) : (
+                  'Create Payment Link'
+                )}
               </button>
             </form>
           </>

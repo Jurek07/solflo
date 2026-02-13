@@ -5,18 +5,196 @@
 :root {
   --sol-purple: #9945FF;
   --sol-green: #14F195;
+  --sol-dark: #0a0a0a;
+  --sol-gray: #141414;
+  --sol-gray-light: #1a1a1a;
+  --sol-border: #262626;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: #0D0D0D;
+  background: linear-gradient(180deg, var(--sol-dark) 0%, #0d0d0d 100%);
   color: #FFFFFF;
+  min-height: 100vh;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--sol-purple) 0%, var(--sol-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+  background: var(--sol-gray);
+  border-radius: 16px;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--sol-purple) 0%, var(--sol-green) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Button styles */
+.btn-primary {
+  background: linear-gradient(135deg, var(--sol-purple) 0%, var(--sol-green) 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(153, 69, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(153, 69, 255, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: var(--sol-gray-light);
+  border: 1px solid var(--sol-border);
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #222;
+  border-color: #333;
+}
+
+/* Card styles */
+.card {
+  background: var(--sol-gray);
+  border: 1px solid var(--sol-border);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: #333;
+}
+
+.card-glow {
+  background: var(--sol-gray);
+  border: 1px solid var(--sol-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 0 40px rgba(153, 69, 255, 0.1);
+}
+
+/* Input styles */
+.input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--sol-dark);
+  border: 1px solid var(--sol-border);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--sol-purple);
+  box-shadow: 0 0 0 3px rgba(153, 69, 255, 0.1);
+}
+
+.input::placeholder {
+  color: #666;
 }
 
 /* Solana wallet adapter overrides */
 .wallet-adapter-button {
-  background: linear-gradient(135deg, var(--sol-purple), var(--sol-green)) !important;
+  background: linear-gradient(135deg, var(--sol-purple) 0%, var(--sol-green) 100%) !important;
+  border-radius: 12px !important;
+  height: 48px !important;
+  padding: 0 24px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  box-shadow: 0 4px 20px rgba(153, 69, 255, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.wallet-adapter-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 30px rgba(153, 69, 255, 0.4) !important;
 }
 
 .wallet-adapter-modal-wrapper {
-  background: #1A1A1A !important;
+  background: var(--sol-gray) !important;
+  border: 1px solid var(--sol-border) !important;
+  border-radius: 20px !important;
+}
+
+.wallet-adapter-modal-title {
+  color: white !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(153, 69, 255, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(153, 69, 255, 0.4); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sol-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sol-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
 }
