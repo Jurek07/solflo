@@ -18,9 +18,9 @@ interface ProvidersProps {
 
 export const Providers: FC<ProvidersProps> = ({ children }) => {
   // Use mainnet for production (required for Privacy Cash)
-  // Ankr provides free public RPC
+  // Helius RPC for reliability
   const endpoint = useMemo(() => 
-    process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.ankr.com/solana'
+    'https://mainnet.helius-rpc.com/?api-key=f43e1695-8763-4828-93d1-7f0bff73d43e'
   , []);
 
   const wallets = useMemo(
