@@ -166,8 +166,8 @@ export default function PayPage() {
 
     try {
       // Dynamic import Privacy Cash SDK
-      const privacycash = await import('privacycash');
-      const hasher = await import('@lightprotocol/hasher.rs');
+      const privacycash: any = await import('privacycash');
+      const hasher: any = await import('@lightprotocol/hasher.rs');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = privacycash;
       const { WasmFactory } = hasher;
