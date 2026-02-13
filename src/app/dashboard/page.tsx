@@ -53,8 +53,16 @@ export default function Dashboard() {
     );
   }
 
-  const totalReceived = links.reduce((sum, link) => {
-    return sum + link.payments.reduce((pSum, p) => pSum + p.amount, 0);
+  const totalReceivedSOL = links.reduce((sum, link) => {
+    return sum + link.payments
+      .filter(p => p.currency === 'SOL')
+      .reduce((pSum, p) => pSum + p.amount, 0);
+  }, 0);
+
+  const totalReceivedUSDC = links.reduce((sum, link) => {
+    return sum + link.payments
+      .filter(p => p.currency === 'USDC')
+      .reduce((pSum, p) => pSum + p.amount, 0);
   }, 0);
 
   const totalPayments = links.reduce((sum, link) => sum + link.payments.length, 0);
@@ -90,7 +98,12 @@ export default function Dashboard() {
             <div className="text-xs text-[#6B6B6B]">Payments</div>
           </div>
           <div className="card text-center py-4">
-            <div className="text-2xl font-bold text-[#00D26A]">{totalReceived.toFixed(2)}</div>
+            <div className="text-lg font-bold text-[#00D26A]">
+              {totalReceivedSOL > 0 && <span>{totalReceivedSOL.toFixed(2)} SOL</span>}
+              {totalReceivedSOL > 0 && totalReceivedUSDC > 0 && <br />}
+              {totalReceivedUSDC > 0 && <span>{totalReceivedUSDC.toFixed(2)} USDC</span>}
+              {totalReceivedSOL === 0 && totalReceivedUSDC === 0 && <span>0</span>}
+            </div>
             <div className="text-xs text-[#6B6B6B]">Received</div>
           </div>
         </div>
