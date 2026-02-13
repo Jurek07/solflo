@@ -1,3 +1,5 @@
+const webpack = require('webpack');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
@@ -22,23 +24,65 @@ const nextConfig = {
         zlib: require.resolve('browserify-zlib'),
       };
 
-      // Handle node: protocol by aliasing to polyfills
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'node:path': require.resolve('path-browserify'),
-        'node:crypto': require.resolve('crypto-browserify'),
-        'node:buffer': require.resolve('buffer/'),
-        'node:stream': require.resolve('stream-browserify'),
-        'node:util': require.resolve('util/'),
-        'node:os': require.resolve('os-browserify/browser'),
-        'node:url': require.resolve('url/'),
-        'node:assert': require.resolve('assert/'),
-        'node:http': require.resolve('stream-http'),
-        'node:https': require.resolve('https-browserify'),
-        'node:zlib': require.resolve('browserify-zlib'),
-        'node:fs': false,
-        'node:process': require.resolve('process/browser'),
-      };
+      // Add plugin to provide Buffer and process globally
+      config.plugins.push(
+        new webpack.ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+          process: 'process/browser',
+        })
+      );
+
+      // Add plugin to handle node: protocol
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^node:/,
+          (resource) => {
+            const mod = resource.request.replace(/^node:/, '');
+            switch (mod) {
+              case 'path':
+                resource.request = 'path-browserify';
+                break;
+              case 'crypto':
+                resource.request = 'crypto-browserify';
+                break;
+              case 'stream':
+                resource.request = 'stream-browserify';
+                break;
+              case 'buffer':
+                resource.request = 'buffer/';
+                break;
+              case 'util':
+                resource.request = 'util/';
+                break;
+              case 'url':
+                resource.request = 'url/';
+                break;
+              case 'os':
+                resource.request = 'os-browserify/browser';
+                break;
+              case 'assert':
+                resource.request = 'assert/';
+                break;
+              case 'http':
+                resource.request = 'stream-http';
+                break;
+              case 'https':
+                resource.request = 'https-browserify';
+                break;
+              case 'zlib':
+                resource.request = 'browserify-zlib';
+                break;
+              case 'fs':
+              case 'net':
+              case 'tls':
+                resource.request = require.resolve('./src/lib/empty-module.js');
+                break;
+              default:
+                throw new Error(`Unknown node: module ${mod}`);
+            }
+          }
+        )
+      );
     }
 
     // Handle WASM files
