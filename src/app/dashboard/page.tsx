@@ -86,7 +86,7 @@ export default function Dashboard() {
         <WalletMultiButton />
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-6">
+      <main className="max-w-2xl mx-auto px-5 py-6 min-h-[calc(100vh-73px)] flex flex-col justify-center">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="card text-center py-4">
