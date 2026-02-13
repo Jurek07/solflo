@@ -192,8 +192,8 @@ export default function PayPage() {
         ? Math.round(link.amount * LAMPORTS_PER_SOL)
         : Math.round(link.amount * 1_000_000); // USDC decimals
 
-      // Circuit files hosted on Privacy Cash CDN
-      const circuitBasePath = 'https://privacycash.org/circuit2';
+      // Circuit files served from /public folder
+      const circuitBasePath = '/circuit2';
       
       // Step 1: Deposit to private pool
       if (link.currency === 'SOL') {
