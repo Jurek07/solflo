@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   description: 'Create payment links and get paid in SOL or USDC in seconds.',
   icons: {
     icon: '/favicon.svg',
-    apple: '/logo-icon.svg',
+    apple: '/logo-icon-512.png',
+  },
+  manifest: '/manifest.json',
+  themeColor: '#00D26A',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SolFloLab',
   },
 };
 
