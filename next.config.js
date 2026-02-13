@@ -5,11 +5,13 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Provide empty fallbacks for Node.js built-in modules
+      const emptyModule = require.resolve('./src/lib/empty-module.js');
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
+        fs: emptyModule,
+        net: emptyModule,
+        tls: emptyModule,
+        worker_threads: emptyModule,
         path: require.resolve('path-browserify'),
         crypto: require.resolve('crypto-browserify'),
         stream: require.resolve('stream-browserify'),
@@ -73,8 +75,10 @@ const nextConfig = {
                 resource.request = 'browserify-zlib';
                 break;
               case 'fs':
+              case 'fs/promises':
               case 'net':
               case 'tls':
+              case 'worker_threads':
                 resource.request = require.resolve('./src/lib/empty-module.js');
                 break;
               default:
