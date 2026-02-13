@@ -169,8 +169,19 @@ export default function PayPage() {
       const privacycash: any = await import('privacycash');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = privacycash;
-      const { WasmFactory } = hasher;
+      console.log('privacycash module:', privacycash);
+      console.log('hasher module:', hasher);
+      
+      // Handle both default and named exports
+      const EncryptionService = privacycash.EncryptionService || privacycash.default?.EncryptionService;
+      const deposit = privacycash.deposit || privacycash.default?.deposit;
+      const withdraw = privacycash.withdraw || privacycash.default?.withdraw;
+      const depositSPL = privacycash.depositSPL || privacycash.default?.depositSPL;
+      const withdrawSPL = privacycash.withdrawSPL || privacycash.default?.withdrawSPL;
+      const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
+
+      console.log('EncryptionService:', EncryptionService);
+      console.log('WasmFactory:', WasmFactory);
 
       const lightWasm = await WasmFactory.getInstance();
 
