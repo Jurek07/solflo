@@ -8,12 +8,13 @@ import {
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
+  createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 
-// USDC token address on Solana (devnet and mainnet have different addresses)
-export const USDC_MINT_DEVNET = new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'); // Devnet USDC
-export const USDC_MINT_MAINNET = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // Mainnet USDC
+// USDC token address on Solana mainnet
+export const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 
 export const USDC_DECIMALS = 6;
 
@@ -44,17 +45,31 @@ export async function createUsdcTransferTransaction(
   connection: Connection,
   from: PublicKey,
   to: PublicKey,
-  amountUsdc: number,
-  usdcMint: PublicKey = USDC_MINT_DEVNET
+  amountUsdc: number
 ): Promise<Transaction> {
   const transaction = new Transaction();
 
-  const fromAta = await getAssociatedTokenAddress(usdcMint, from);
-  const toAta = await getAssociatedTokenAddress(usdcMint, to);
+  const fromAta = await getAssociatedTokenAddress(USDC_MINT, from);
+  const toAta = await getAssociatedTokenAddress(USDC_MINT, to);
 
-  // Note: In production, you'd want to check if toAta exists and create it if not
-  // For MVP, we assume the merchant has already created their USDC account
+  // Check if recipient has a USDC token account
+  const toAtaInfo = await connection.getAccountInfo(toAta);
+  
+  // If recipient doesn't have a USDC account, create one (sender pays)
+  if (!toAtaInfo) {
+    transaction.add(
+      createAssociatedTokenAccountInstruction(
+        from,           // payer
+        toAta,          // associated token account
+        to,             // owner
+        USDC_MINT,      // mint
+        TOKEN_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+      )
+    );
+  }
 
+  // Add transfer instruction
   transaction.add(
     createTransferInstruction(
       fromAta,
