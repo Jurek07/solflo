@@ -40,11 +40,11 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
         const linkUrl = `${window.location.origin}/pay/${link.id}`;
         setCreatedLink(linkUrl);
       } else {
-        setError('Failed to create payment link. Please try again.');
+        setError('Failed to create link');
       }
     } catch (err) {
       console.error('Failed to create link:', err);
-      setError('Failed to create payment link. Please try again.');
+      setError('Failed to create link');
     } finally {
       setIsCreating(false);
     }
@@ -58,84 +58,72 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
     }
   };
 
-  const handleDone = () => {
-    onCreated();
-  };
-
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="card w-full max-w-md">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-5 z-50">
+      <div className="card w-full max-w-md animate-fade-in">
         {createdLink ? (
-          // Success state
+          // Success
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#9945FF]/20 to-[#14F195]/20 flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">✓</span>
+            <div className="w-12 h-12 bg-[#00D26A] rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-black text-xl">✓</span>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Link Created!</h2>
-            <p className="text-gray-400 mb-6">Share this link to receive payments</p>
+            <h2 className="text-xl font-semibold mb-2">Link Created</h2>
             
-            <div className="bg-[#0a0a0a] border border-[#262626] rounded-xl p-4 mb-4 break-all text-sm text-left font-mono">
+            <div className="bg-black rounded-lg p-3 mb-4 text-sm font-mono text-[#6B6B6B] break-all text-left">
               {createdLink}
             </div>
 
             {singleUse && (
-              <div className="flex items-center justify-center gap-2 text-sm text-yellow-400 mb-6">
-                <span>⚡</span>
-                <span>Single-use: expires after one payment</span>
+              <div className="text-sm text-[#00D26A] mb-4">
+                Single-use link
               </div>
             )}
             
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button onClick={copyLink} className="btn-primary flex-1">
-                {copied ? '✓ Copied!' : 'Copy Link'}
+                {copied ? 'Copied!' : 'Copy Link'}
               </button>
-              <button onClick={handleDone} className="btn-secondary flex-1">
+              <button onClick={onCreated} className="btn-secondary flex-1">
                 Done
               </button>
             </div>
           </div>
         ) : (
-          // Form state
+          // Form
           <>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Create Payment Link</h2>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-lg font-semibold">New Payment Link</h2>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center transition"
+                className="w-8 h-8 rounded-full hover:bg-[#1A1A1A] flex items-center justify-center text-[#6B6B6B] hover:text-white transition"
               >
-                ✕
+                ×
               </button>
             </div>
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-400 text-sm">
+              <div className="bg-[#E85454]/10 text-[#E85454] text-sm rounded-lg p-3 mb-4">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="space-y-5">
-                {/* Title */}
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Title
-                  </label>
+                  <label className="block text-sm text-[#6B6B6B] mb-1.5">Title</label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Logo Design, Consulting Hour"
+                    placeholder="e.g., Design Work"
                     className="input"
                     required
                   />
                 </div>
 
-                {/* Amount & Currency */}
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <label className="block text-sm text-gray-400 mb-2">
-                      Amount
-                    </label>
+                    <label className="block text-sm text-[#6B6B6B] mb-1.5">Amount</label>
                     <input
                       type="number"
                       step="any"
@@ -147,10 +135,8 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                       required
                     />
                   </div>
-                  <div className="w-28">
-                    <label className="block text-sm text-gray-400 mb-2">
-                      Currency
-                    </label>
+                  <div className="w-24">
+                    <label className="block text-sm text-[#6B6B6B] mb-1.5">Currency</label>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value as Currency)}
@@ -162,38 +148,32 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Description <span className="text-gray-600">(optional)</span>
-                  </label>
-                  <textarea
+                  <label className="block text-sm text-[#6B6B6B] mb-1.5">Description (optional)</label>
+                  <input
+                    type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Add details about what this payment is for..."
-                    className="input resize-none"
-                    rows={3}
+                    placeholder="What's this for?"
+                    className="input"
                   />
                 </div>
 
-                {/* Single Use Toggle */}
-                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-xl border border-[#262626]">
+                <div className="flex items-center justify-between py-3 px-4 bg-black rounded-xl">
                   <div>
-                    <label className="text-sm font-medium">Single-use link</label>
-                    <p className="text-xs text-gray-500 mt-0.5">Expires after one payment</p>
+                    <div className="text-sm font-medium">Single-use</div>
+                    <div className="text-xs text-[#6B6B6B]">Expires after 1 payment</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSingleUse(!singleUse)}
-                    className={`w-12 h-7 rounded-full transition-all ${
-                      singleUse 
-                        ? 'bg-gradient-to-r from-[#9945FF] to-[#14F195]' 
-                        : 'bg-[#262626]'
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      singleUse ? 'bg-[#00D26A]' : 'bg-[#1A1A1A]'
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-all shadow-lg ${
-                        singleUse ? 'translate-x-6' : 'translate-x-1'
+                      className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        singleUse ? 'translate-x-5' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
@@ -203,16 +183,9 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
               <button
                 type="submit"
                 disabled={isCreating || !title || !amount}
-                className="btn-primary w-full mt-6"
+                className="btn-primary w-full mt-5"
               >
-                {isCreating ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    Creating...
-                  </span>
-                ) : (
-                  'Create Payment Link'
-                )}
+                {isCreating ? 'Creating...' : 'Create Link'}
               </button>
             </form>
           </>

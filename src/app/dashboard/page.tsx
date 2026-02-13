@@ -47,7 +47,7 @@ export default function Dashboard() {
   if (!mounted || !connected || !publicKey) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">Loading...</div>
+        <div className="text-[#6B6B6B]">Loading...</div>
       </div>
     );
   }
@@ -70,72 +70,56 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-[#262626] px-6 py-4 backdrop-blur-sm bg-[#0a0a0a]/80 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/">
-            <h1 className="text-2xl font-bold gradient-text">
-              Solflo
-            </h1>
-          </Link>
-          <WalletMultiButton />
-        </div>
+      <header className="px-5 py-4 flex justify-between items-center border-b border-[#1A1A1A]">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-[#00D26A] rounded-lg flex items-center justify-center">
+            <span className="text-black font-bold text-sm">S</span>
+          </div>
+          <span className="text-xl font-semibold">
+            <span className="text-white">sol</span>
+            <span className="text-[#00D26A]">flo</span>
+          </span>
+        </Link>
+        <WalletMultiButton />
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Page Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-1">Dashboard</h2>
-            <p className="text-gray-500">Manage your payment links</p>
+      <main className="max-w-2xl mx-auto px-5 py-6">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="card text-center py-4">
+            <div className="text-2xl font-bold">{links.length}</div>
+            <div className="text-xs text-[#6B6B6B]">Links</div>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn-primary"
-          >
-            + Create Link
-          </button>
+          <div className="card text-center py-4">
+            <div className="text-2xl font-bold">{totalPayments}</div>
+            <div className="text-xs text-[#6B6B6B]">Payments</div>
+          </div>
+          <div className="card text-center py-4">
+            <div className="text-2xl font-bold text-[#00D26A]">{totalReceived.toFixed(2)}</div>
+            <div className="text-xs text-[#6B6B6B]">Received</div>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="card">
-            <div className="text-gray-400 text-sm mb-1">Payment Links</div>
-            <div className="text-3xl font-bold">{links.length}</div>
-          </div>
-          <div className="card">
-            <div className="text-gray-400 text-sm mb-1">Total Payments</div>
-            <div className="text-3xl font-bold">{totalPayments}</div>
-          </div>
-          <div className="card">
-            <div className="text-gray-400 text-sm mb-1">Total Received</div>
-            <div className="text-3xl font-bold gradient-text">
-              {totalReceived.toFixed(4)}
-            </div>
-          </div>
-        </div>
+        {/* Create Button */}
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="btn-primary w-full mb-6"
+        >
+          + Create Payment Link
+        </button>
 
         {/* Links List */}
         {loading ? (
-          <div className="card text-center py-16">
-            <div className="inline-block w-8 h-8 border-2 border-[#9945FF] border-t-transparent rounded-full animate-spin mb-4"></div>
-            <div className="text-gray-400">Loading your payment links...</div>
+          <div className="text-center py-12 text-[#6B6B6B]">
+            Loading...
           </div>
         ) : links.length === 0 ? (
-          <div className="card text-center py-16">
-            <div className="text-5xl mb-4">💸</div>
-            <h3 className="text-xl font-semibold mb-2">No payment links yet</h3>
-            <p className="text-gray-400 mb-6">
-              Create your first payment link to start receiving SOL or USDC
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-primary"
-            >
-              Create Your First Link
-            </button>
+          <div className="text-center py-12">
+            <div className="text-[#6B6B6B] mb-2">No payment links yet</div>
+            <div className="text-sm text-[#6B6B6B]">Create one to start receiving payments</div>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="space-y-3">
             {links.map((link) => (
               <LinkCard key={link.id} link={link} onDeleted={handleLinkDeleted} />
             ))}
