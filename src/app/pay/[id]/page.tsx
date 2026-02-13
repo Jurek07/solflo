@@ -307,7 +307,7 @@ export default function PayPage() {
               
               {txSignature && txSignature !== 'private-payment' && (
                 <a
-                  href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
+                  href={`https://explorer.solana.com/tx/${txSignature}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#00D26A] text-sm hover:underline"
