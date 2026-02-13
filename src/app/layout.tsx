@@ -6,7 +6,7 @@ import { Providers } from '@/components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Solflo - Solana Payment Links',
+  title: 'SolFloLab - Solana Payment Links',
   description: 'Create payment links and get paid in SOL or USDC in seconds.',
 };
 

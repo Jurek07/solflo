@@ -53,6 +53,7 @@ export function Logo({ size = 'md', showText = true }: LogoProps) {
         <span className={`font-semibold ${text}`}>
           <span className="text-white">Sol</span>
           <span className="text-[#00D26A]">Flo</span>
+          <span className="text-white">Lab</span>
         </span>
       )}
     </div>
