@@ -8,6 +8,7 @@ export interface PaymentLink {
   title: string;
   description?: string;
   singleUse: boolean;
+  privatePayment: boolean;
   used: boolean;
   createdAt: string;
   payments: Payment[];
@@ -20,5 +21,6 @@ export interface Payment {
   amount: number;
   currency: Currency;
   signature: string;
+  isPrivate: boolean;
   confirmedAt: string;
 }

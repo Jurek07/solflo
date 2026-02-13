@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { PaymentLink } from '@/types';
 import { getPaymentLink, recordPayment } from '@/lib/supabase';
 import { 
@@ -18,13 +18,13 @@ import {
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 
-type PaymentStatus = 'idle' | 'processing' | 'confirming' | 'success' | 'error';
+type PaymentStatus = 'idle' | 'initializing' | 'processing' | 'confirming' | 'success' | 'error';
 
 export default function PayPage() {
   const params = useParams();
   const linkId = params.id as string;
   
-  const { publicKey, sendTransaction, connected } = useWallet();
+  const { publicKey, signMessage, signTransaction, sendTransaction, connected } = useWallet();
   const { connection } = useConnection();
   
   const [mounted, setMounted] = useState(false);
@@ -100,47 +100,174 @@ export default function PayPage() {
     setError(null);
 
     try {
-      const merchantPubkey = new PublicKey(link.merchantWallet);
-      
-      let transaction;
-      if (link.currency === 'SOL') {
-        transaction = await createSolTransferTransaction(
-          connection,
-          publicKey,
-          merchantPubkey,
-          link.amount
-        );
+      if (link.privatePayment) {
+        // Private payment flow
+        await handlePrivatePayment();
       } else {
-        transaction = await createUsdcTransferTransaction(
-          connection,
-          publicKey,
-          merchantPubkey,
-          link.amount
-        );
-      }
-
-      const signature = await sendTransaction(transaction, connection);
-      setTxSignature(signature);
-      setStatus('confirming');
-
-      const confirmed = await confirmTransaction(connection, signature);
-
-      if (confirmed) {
-        await recordPayment({
-          linkId: link.id,
-          payerWallet: publicKey.toString(),
-          amount: link.amount,
-          currency: link.currency,
-          signature,
-        });
-        setStatus('success');
-      } else {
-        throw new Error('Transaction failed');
+        // Regular payment flow
+        await handleRegularPayment();
       }
     } catch (err: any) {
       console.error('Payment error:', err);
       setError(err.message || 'Payment failed');
       setStatus('error');
+    }
+  };
+
+  const handleRegularPayment = async () => {
+    if (!publicKey || !signTransaction) return;
+
+    const merchantPubkey = new PublicKey(link.merchantWallet);
+    
+    let transaction;
+    if (link.currency === 'SOL') {
+      transaction = await createSolTransferTransaction(
+        connection,
+        publicKey,
+        merchantPubkey,
+        link.amount
+      );
+    } else {
+      transaction = await createUsdcTransferTransaction(
+        connection,
+        publicKey,
+        merchantPubkey,
+        link.amount
+      );
+    }
+
+    const signature = await sendTransaction(transaction, connection);
+    setTxSignature(signature);
+    setStatus('confirming');
+
+    const confirmed = await confirmTransaction(connection, signature);
+
+    if (confirmed) {
+      await recordPayment({
+        linkId: link.id,
+        payerWallet: publicKey.toString(),
+        amount: link.amount,
+        currency: link.currency,
+        signature,
+        isPrivate: false,
+      });
+      setStatus('success');
+    } else {
+      throw new Error('Transaction failed');
+    }
+  };
+
+  const handlePrivatePayment = async () => {
+    if (!publicKey || !signMessage || !signTransaction) {
+      throw new Error('Wallet does not support signing');
+    }
+
+    setStatus('initializing');
+
+    try {
+      // Dynamic import Privacy Cash SDK
+      const { WasmFactory } = await import('@lightprotocol/hasher.rs');
+      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = await import('privacycash');
+
+      const lightWasm = await WasmFactory.getInstance();
+
+      // Sign message to derive encryption key
+      const encodedMessage = new TextEncoder().encode('Privacy Money account sign in');
+      let signature = await signMessage(encodedMessage);
+
+      // Handle signature format
+      if ((signature as any).signature) {
+        signature = (signature as any).signature;
+      }
+
+      const encryptionService = new EncryptionService();
+      encryptionService.deriveEncryptionKeyFromSignature(signature);
+
+      setStatus('processing');
+
+      const amountInSmallestUnit = link.currency === 'SOL' 
+        ? Math.round(link.amount * LAMPORTS_PER_SOL)
+        : Math.round(link.amount * 1_000_000); // USDC decimals
+
+      // Step 1: Deposit to private pool
+      if (link.currency === 'SOL') {
+        await deposit({
+          lightWasm,
+          connection,
+          amount_in_lamports: amountInSmallestUnit,
+          keyBasePath: '/circuit2',
+          publicKey,
+          transactionSigner: async (tx: any) => {
+            return await signTransaction(tx);
+          },
+          storage: localStorage,
+          encryptionService,
+        });
+      } else {
+        const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        await depositSPL({
+          referrer: '',
+          lightWasm,
+          connection,
+          base_units: amountInSmallestUnit,
+          keyBasePath: '/circuit2',
+          publicKey,
+          transactionSigner: async (tx: any) => {
+            return await signTransaction(tx);
+          },
+          storage: localStorage,
+          encryptionService,
+          mintAddress: USDC_MINT,
+        });
+      }
+
+      setStatus('confirming');
+
+      // Step 2: Withdraw to merchant (anonymously)
+      let withdrawResult;
+      if (link.currency === 'SOL') {
+        withdrawResult = await withdraw({
+          amount_in_lamports: amountInSmallestUnit,
+          connection,
+          encryptionService,
+          keyBasePath: '/circuit2',
+          publicKey,
+          storage: localStorage,
+          recipient: link.merchantWallet,
+          lightWasm,
+        });
+      } else {
+        const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        withdrawResult = await withdrawSPL({
+          connection,
+          encryptionService,
+          keyBasePath: '/circuit2',
+          publicKey,
+          storage: localStorage,
+          recipient: link.merchantWallet,
+          lightWasm,
+          mintAddress: USDC_MINT,
+          amount: amountInSmallestUnit,
+        });
+      }
+
+      const sig = withdrawResult?.signature || 'private-payment';
+      setTxSignature(sig);
+
+      // Record payment (wallet hidden)
+      await recordPayment({
+        linkId: link.id,
+        payerWallet: 'private',
+        amount: link.amount,
+        currency: link.currency,
+        signature: sig,
+        isPrivate: true,
+      });
+
+      setStatus('success');
+    } catch (err: any) {
+      console.error('Private payment error:', err);
+      throw new Error(err.message || 'Private payment failed');
     }
   };
 
@@ -162,12 +289,15 @@ export default function PayPage() {
               <div className="w-14 h-14 bg-[#00D26A] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-black text-2xl">✓</span>
               </div>
-              <div className="text-xl font-semibold mb-1">Sent!</div>
+              <div className="text-xl font-semibold mb-1">
+                {link.privatePayment ? 'Private Payment Sent!' : 'Sent!'}
+              </div>
               <div className="text-[#6B6B6B] mb-4">
                 {link.amount} {link.currency} paid
+                {link.privatePayment && ' anonymously'}
               </div>
               
-              {txSignature && (
+              {txSignature && txSignature !== 'private-payment' && (
                 <a
                   href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                   target="_blank"
@@ -193,15 +323,29 @@ export default function PayPage() {
                 <div className="text-[#6B6B6B]">{link.currency}</div>
               </div>
 
-              {link.singleUse && (
-                <div className="text-center text-sm text-[#00D26A] mb-4">
-                  Single-use link
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                {link.singleUse && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-[#00D26A]/10 text-[#00D26A]">
+                    Single-use
+                  </span>
+                )}
+                {link.privatePayment && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
+                    🔒 Private Payment
+                  </span>
+                )}
+              </div>
+
+              {link.privatePayment ? (
+                <div className="text-center text-sm text-purple-400 mb-4">
+                  Your identity will be hidden
+                </div>
+              ) : (
+                <div className="text-center text-sm text-[#6B6B6B] mb-4">
+                  To: {shortenAddress(link.merchantWallet)}
                 </div>
               )}
-
-              <div className="text-center text-sm text-[#6B6B6B] mb-4">
-                To: {shortenAddress(link.merchantWallet)}
-              </div>
 
               {error && (
                 <div className="bg-[#E85454]/10 text-[#E85454] text-sm rounded-lg p-3 mb-4 text-center">
@@ -217,12 +361,20 @@ export default function PayPage() {
               ) : (
                 <button
                   onClick={handlePayment}
-                  disabled={status === 'processing' || status === 'confirming'}
-                  className="btn-primary w-full"
+                  disabled={status !== 'idle' && status !== 'error'}
+                  className={`w-full py-3 rounded-full font-semibold transition ${
+                    link.privatePayment 
+                      ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                      : 'btn-primary'
+                  } disabled:opacity-50`}
                 >
+                  {status === 'initializing' && 'Initializing privacy...'}
                   {status === 'processing' && 'Processing...'}
                   {status === 'confirming' && 'Confirming...'}
-                  {status === 'idle' && `Pay ${link.amount} ${link.currency}`}
+                  {status === 'idle' && (link.privatePayment 
+                    ? `🔒 Pay ${link.amount} ${link.currency} Privately`
+                    : `Pay ${link.amount} ${link.currency}`
+                  )}
                   {status === 'error' && 'Try Again'}
                 </button>
               )}
@@ -230,7 +382,10 @@ export default function PayPage() {
           )}
 
           <div className="text-center mt-4 text-xs text-[#6B6B6B]">
-            Direct wallet-to-wallet · Solana
+            {link.privatePayment 
+              ? 'Powered by Privacy Cash · Solana' 
+              : 'Direct wallet-to-wallet · Solana'
+            }
           </div>
         </div>
       </main>

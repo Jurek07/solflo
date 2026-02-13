@@ -16,6 +16,7 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
   const [currency, setCurrency] = useState<Currency>('SOL');
   const [description, setDescription] = useState('');
   const [singleUse, setSingleUse] = useState(false);
+  const [privatePayment, setPrivatePayment] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -34,6 +35,7 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
         currency,
         description: description || undefined,
         singleUse,
+        privatePayment,
       });
 
       if (link) {
@@ -73,11 +75,18 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
               {createdLink}
             </div>
 
-            {singleUse && (
-              <div className="text-sm text-[#00D26A] mb-4">
-                Single-use link
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {singleUse && (
+                <span className="text-xs px-2 py-1 rounded-full bg-[#00D26A]/10 text-[#00D26A]">
+                  Single-use
+                </span>
+              )}
+              {privatePayment && (
+                <span className="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
+                  🔒 Private
+                </span>
+              )}
+            </div>
             
             <div className="flex gap-2">
               <button onClick={copyLink} className="btn-primary flex-1">
@@ -159,24 +168,51 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                   />
                 </div>
 
-                <div className="flex items-center justify-between py-3 px-4 bg-black rounded-xl">
-                  <div>
-                    <div className="text-sm font-medium">Single-use</div>
-                    <div className="text-xs text-[#6B6B6B]">Expires after 1 payment</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSingleUse(!singleUse)}
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      singleUse ? 'bg-[#00D26A]' : 'bg-[#1A1A1A]'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                        singleUse ? 'translate-x-5' : 'translate-x-0.5'
+                {/* Options */}
+                <div className="space-y-3">
+                  {/* Single Use Toggle */}
+                  <div className="flex items-center justify-between py-3 px-4 bg-black rounded-xl">
+                    <div>
+                      <div className="text-sm font-medium">Single-use</div>
+                      <div className="text-xs text-[#6B6B6B]">Expires after 1 payment</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSingleUse(!singleUse)}
+                      className={`w-11 h-6 rounded-full transition-colors ${
+                        singleUse ? 'bg-[#00D26A]' : 'bg-[#1A1A1A]'
                       }`}
-                    />
-                  </button>
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                          singleUse ? 'translate-x-5' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Private Payment Toggle */}
+                  <div className="flex items-center justify-between py-3 px-4 bg-black rounded-xl border border-purple-500/20">
+                    <div>
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <span>🔒</span> Private Payment
+                      </div>
+                      <div className="text-xs text-[#6B6B6B]">Sender & receiver are anonymous</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPrivatePayment(!privatePayment)}
+                      className={`w-11 h-6 rounded-full transition-colors ${
+                        privatePayment ? 'bg-purple-500' : 'bg-[#1A1A1A]'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                          privatePayment ? 'translate-x-5' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 

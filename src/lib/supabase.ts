@@ -25,6 +25,7 @@ export async function createPaymentLink(data: {
   title: string;
   description?: string;
   singleUse: boolean;
+  privatePayment: boolean;
 }): Promise<PaymentLink | null> {
   const { data: link, error } = await getSupabase()
     .from('payment_links')
@@ -35,6 +36,7 @@ export async function createPaymentLink(data: {
       title: data.title,
       description: data.description,
       single_use: data.singleUse,
+      private_payment: data.privatePayment,
     })
     .select()
     .single();
@@ -98,15 +100,17 @@ export async function recordPayment(data: {
   amount: number;
   currency: 'SOL' | 'USDC';
   signature: string;
+  isPrivate?: boolean;
 }): Promise<Payment | null> {
   const { data: payment, error } = await getSupabase()
     .from('payments')
     .insert({
       link_id: data.linkId,
-      payer_wallet: data.payerWallet,
+      payer_wallet: data.isPrivate ? 'private' : data.payerWallet,
       amount: data.amount,
       currency: data.currency,
       signature: data.signature,
+      is_private: data.isPrivate || false,
     })
     .select()
     .single();
@@ -136,6 +140,7 @@ function transformLink(record: any): PaymentLink {
     title: record.title,
     description: record.description,
     singleUse: record.single_use,
+    privatePayment: record.private_payment || false,
     used: record.used,
     createdAt: record.created_at,
     payments: record.payments?.map(transformPayment) || [],
@@ -150,6 +155,7 @@ function transformPayment(record: any): Payment {
     amount: record.amount,
     currency: record.currency,
     signature: record.signature,
+    isPrivate: record.is_private || false,
     confirmedAt: record.created_at,
   };
 }

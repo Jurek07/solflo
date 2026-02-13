@@ -43,7 +43,7 @@ export function LinkCard({ link, onDeleted }: LinkCardProps) {
       {/* Header Row */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{link.title}</span>
             {link.singleUse && (
               <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -52,6 +52,11 @@ export function LinkCard({ link, onDeleted }: LinkCardProps) {
                   : 'bg-[#00D26A]/10 text-[#00D26A]'
               }`}>
                 {isExpired ? 'Used' : '1-time'}
+              </span>
+            )}
+            {link.privatePayment && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400">
+                🔒 Private
               </span>
             )}
           </div>
@@ -76,7 +81,7 @@ export function LinkCard({ link, onDeleted }: LinkCardProps) {
               className="flex justify-between text-sm py-2 px-3 bg-black rounded-lg"
             >
               <span className="text-[#6B6B6B] font-mono text-xs">
-                {shortenAddress(payment.payerWallet)}
+                {payment.isPrivate ? '🔒 Private' : shortenAddress(payment.payerWallet)}
               </span>
               <span className="text-[#00D26A]">
                 +{payment.amount}
