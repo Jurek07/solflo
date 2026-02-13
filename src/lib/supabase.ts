@@ -1,10 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { PaymentLink, Payment } from '@/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+let supabase: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase(): SupabaseClient {
+  if (supabase) return supabase;
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables not configured');
+  }
+  
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  return supabase;
+}
 
 // Payment Links
 export async function createPaymentLink(data: {
@@ -15,7 +26,7 @@ export async function createPaymentLink(data: {
   description?: string;
   singleUse: boolean;
 }): Promise<PaymentLink | null> {
-  const { data: link, error } = await supabase
+  const { data: link, error } = await getSupabase()
     .from('payment_links')
     .insert({
       merchant_wallet: data.merchantWallet,
@@ -37,7 +48,7 @@ export async function createPaymentLink(data: {
 }
 
 export async function getPaymentLink(id: string): Promise<PaymentLink | null> {
-  const { data: link, error } = await supabase
+  const { data: link, error } = await getSupabase()
     .from('payment_links')
     .select('*, payments(*)')
     .eq('id', id)
@@ -52,7 +63,7 @@ export async function getPaymentLink(id: string): Promise<PaymentLink | null> {
 }
 
 export async function getPaymentLinksByWallet(wallet: string): Promise<PaymentLink[]> {
-  const { data: links, error } = await supabase
+  const { data: links, error } = await getSupabase()
     .from('payment_links')
     .select('*, payments(*)')
     .eq('merchant_wallet', wallet)
@@ -67,7 +78,7 @@ export async function getPaymentLinksByWallet(wallet: string): Promise<PaymentLi
 }
 
 export async function deletePaymentLink(id: string): Promise<boolean> {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('payment_links')
     .delete()
     .eq('id', id);
@@ -88,7 +99,7 @@ export async function recordPayment(data: {
   currency: 'SOL' | 'USDC';
   signature: string;
 }): Promise<Payment | null> {
-  const { data: payment, error } = await supabase
+  const { data: payment, error } = await getSupabase()
     .from('payments')
     .insert({
       link_id: data.linkId,
@@ -106,7 +117,7 @@ export async function recordPayment(data: {
   }
 
   // If single-use, mark the link as used
-  await supabase
+  await getSupabase()
     .from('payment_links')
     .update({ used: true })
     .eq('id', data.linkId)
