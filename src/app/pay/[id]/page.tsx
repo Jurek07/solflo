@@ -165,49 +165,12 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Dynamic import Privacy Cash SDK
-      const privacycash: any = await import('privacycash');
+      // Dynamic import Privacy Cash SDK - exports are in privacycash/utils
+      const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      console.log('privacycash module keys:', Object.keys(privacycash));
-      console.log('privacycash full:', JSON.stringify(Object.keys(privacycash)));
-      
-      // Try accessing via different paths
-      let EncryptionService = privacycash.EncryptionService;
-      let deposit = privacycash.deposit;
-      let withdraw = privacycash.withdraw;
-      let depositSPL = privacycash.depositSPL;
-      let withdrawSPL = privacycash.withdrawSPL;
-      
-      // If not found, try default
-      if (!EncryptionService && privacycash.default) {
-        console.log('Trying default export, keys:', Object.keys(privacycash.default));
-        EncryptionService = privacycash.default.EncryptionService;
-        deposit = privacycash.default.deposit;
-        withdraw = privacycash.default.withdraw;
-        depositSPL = privacycash.default.depositSPL;
-        withdrawSPL = privacycash.default.withdrawSPL;
-      }
-      
-      // Try utils path as mentioned in package.json exports
-      if (!EncryptionService) {
-        try {
-          const utils: any = await import('privacycash/utils');
-          console.log('utils keys:', Object.keys(utils));
-          EncryptionService = utils.EncryptionService;
-        } catch (e) {
-          console.log('No utils subpath');
-        }
-      }
-
+      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
-
-      console.log('Final EncryptionService:', EncryptionService);
-      console.log('Final deposit:', deposit);
-      
-      if (!EncryptionService) {
-        throw new Error('EncryptionService not found in privacycash module');
-      }
 
       const lightWasm = await WasmFactory.getInstance();
 
