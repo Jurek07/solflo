@@ -192,26 +192,35 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                   </div>
 
                   {/* Private Payment Toggle */}
-                  <div className="flex items-center justify-between py-3 px-4 bg-black rounded-xl border border-purple-500/20">
-                    <div>
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        <span>🔒</span> Private Payment
+                  <div className={`py-3 px-4 bg-black rounded-xl border ${privatePayment ? 'border-purple-500/40' : 'border-purple-500/20'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          <span>🔒</span> Private Payment
+                        </div>
+                        <div className="text-xs text-[#6B6B6B]">Sender & receiver are anonymous</div>
                       </div>
-                      <div className="text-xs text-[#6B6B6B]">Sender & receiver are anonymous</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPrivatePayment(!privatePayment)}
-                      className={`w-11 h-6 rounded-full transition-colors ${
-                        privatePayment ? 'bg-purple-500' : 'bg-[#1A1A1A]'
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                          privatePayment ? 'translate-x-5' : 'translate-x-0.5'
+                      <button
+                        type="button"
+                        onClick={() => setPrivatePayment(!privatePayment)}
+                        className={`w-11 h-6 rounded-full transition-colors ${
+                          privatePayment ? 'bg-purple-500' : 'bg-[#1A1A1A]'
                         }`}
-                      />
-                    </button>
+                      >
+                        <div
+                          className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                            privatePayment ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {privatePayment && (
+                      <div className="mt-3 pt-3 border-t border-purple-500/20 text-xs text-[#6B6B6B]">
+                        <div className="text-purple-400 mb-1">Privacy fees (paid by sender):</div>
+                        <div>• 0.008 SOL + 0.35% of amount</div>
+                        <div>• + Jupiter swap fees</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
