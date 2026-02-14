@@ -218,7 +218,6 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                       <div className="mt-3 pt-3 border-t border-purple-500/20 text-xs text-[#6B6B6B]">
                         <div className="text-purple-400 mb-1">Privacy fees (paid by sender):</div>
                         <div>• 0.008 SOL + 0.35% of amount</div>
-                        <div>• + Jupiter swap fees</div>
                       </div>
                     )}
                   </div>
