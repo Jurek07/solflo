@@ -140,9 +140,9 @@ export default function PayPage() {
     setTxSignature(signature);
     setStatus('confirming');
 
-    const confirmed = await confirmTransaction(connection, signature);
+    const result = await confirmTransaction(connection, signature);
 
-    if (confirmed) {
+    if (result.success) {
       await recordPayment({
         linkId: link.id,
         payerWallet: publicKey.toString(),
@@ -154,7 +154,7 @@ export default function PayPage() {
       });
       setStatus('success');
     } else {
-      throw new Error('Transaction failed');
+      throw new Error(result.error || 'Transaction failed');
     }
   };
 

@@ -92,25 +92,39 @@ export async function confirmTransaction(
   connection: Connection,
   signature: string,
   timeoutMs: number = 30000
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string }> {
   const start = Date.now();
   
   while (Date.now() - start < timeoutMs) {
     const status = await connection.getSignatureStatus(signature);
     
-    if (status.value?.confirmationStatus === 'confirmed' || 
-        status.value?.confirmationStatus === 'finalized') {
-      return true;
+    if (status.value?.err) {
+      // Transaction confirmed but failed
+      const errorMsg = typeof status.value.err === 'string' 
+        ? status.value.err 
+        : JSON.stringify(status.value.err);
+      return { success: false, error: errorMsg };
     }
     
-    if (status.value?.err) {
-      return false;
+    if (status.value?.confirmationStatus === 'confirmed' || 
+        status.value?.confirmationStatus === 'finalized') {
+      // Double-check by fetching the transaction
+      const tx = await connection.getTransaction(signature, { 
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0 
+      });
+      
+      if (tx?.meta?.err) {
+        return { success: false, error: 'Transaction failed on-chain' };
+      }
+      
+      return { success: true };
     }
     
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
-  return false;
+  return { success: false, error: 'Transaction confirmation timeout' };
 }
 
 export function formatSol(lamports: number): string {
