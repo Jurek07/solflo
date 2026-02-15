@@ -188,6 +188,15 @@ body {
   color: var(--text) !important;
 }
 
+/* Glow effects */
+.glow-green {
+  text-shadow: 0 0 10px rgba(0, 210, 106, 0.5);
+}
+
+.glow-green-strong {
+  text-shadow: 0 0 20px rgba(0, 210, 106, 0.6), 0 0 40px rgba(0, 210, 106, 0.3);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -196,6 +205,23 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.2s ease forwards;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Scrollbar */

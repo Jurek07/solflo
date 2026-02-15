@@ -39,7 +39,7 @@ export function LinkCard({ link, onDeleted }: LinkCardProps) {
   };
 
   return (
-    <div className={`card ${isExpired ? 'opacity-50' : ''}`}>
+    <div className={`card ${isExpired ? 'opacity-50' : ''} hover:border-[#1A1A1A] transition-colors duration-200`}>
       {/* Header Row */}
       <div className="flex justify-between items-start mb-3">
         <div>

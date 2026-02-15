@@ -20,7 +20,7 @@ export default function Home() {
       <section className="flex-1 flex flex-col items-center justify-center px-5 py-16">
         <div className="text-center max-w-lg animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            Payment links for <span className="text-[#00D26A]">Solana</span>
+            Payment links for <span className="text-[#00D26A] glow-green">Solana</span>
           </h1>
           
           <p className="text-[#6B6B6B] text-lg mb-8">
@@ -57,9 +57,11 @@ export default function Home() {
       <section className="px-5 py-12 border-t border-[#1A1A1A]">
         <div className="max-w-2xl mx-auto">
           <div className="space-y-4">
-            <div className="card flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center text-lg">
-                ⚡
+            <div className="card flex items-center gap-4 cursor-pointer hover:border-[#00D26A]/30 transition-colors duration-200">
+              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#00D26A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
               <div>
                 <div className="font-medium">Instant</div>
@@ -67,9 +69,11 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="card flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center text-lg">
-                🔒
+            <div className="card flex items-center gap-4 cursor-pointer hover:border-[#00D26A]/30 transition-colors duration-200">
+              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#00D26A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
               </div>
               <div>
                 <div className="font-medium">Non-custodial</div>
@@ -77,9 +81,11 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="card flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center text-lg">
-                🔗
+            <div className="card flex items-center gap-4 cursor-pointer hover:border-[#00D26A]/30 transition-colors duration-200">
+              <div className="w-10 h-10 rounded-full bg-[#00D26A]/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#00D26A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
               </div>
               <div>
                 <div className="font-medium">Single-use links</div>
