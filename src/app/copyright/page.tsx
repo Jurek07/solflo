@@ -46,7 +46,6 @@ export default function CopyrightPage() {
             <ul className="list-disc list-inside space-y-2">
               <li>SolFloLab name and logo</li>
               <li>SolFlo name</li>
-              <li>&quot;Payment links for Solana&quot; tagline</li>
             </ul>
           </section>
 
