@@ -1,0 +1,46 @@
+import React from 'react';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'expo-status-bar';
+
+import { HomeScreen } from './src/screens/HomeScreen';
+import { DashboardScreen } from './src/screens/DashboardScreen';
+import { CreateLinkScreen } from './src/screens/CreateLinkScreen';
+
+const Stack = createNativeStackNavigator();
+
+const theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: '#0A0A0A',
+    card: '#141414',
+    border: '#1A1A1A',
+    primary: '#00D26A',
+  },
+};
+
+export default function App() {
+  return (
+    <NavigationContainer theme={theme}>
+      <StatusBar style="light" />
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen
+          name="CreateLink"
+          component={CreateLinkScreen}
+          options={{
+            animation: 'slide_from_bottom',
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
