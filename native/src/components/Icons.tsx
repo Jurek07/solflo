@@ -229,19 +229,34 @@ export function LockIcon({ size = 24, color = COLORS.white }: IconProps) {
 
 // SolFloLab Logo for QR code center
 export function SolFloLabLogo({ size = 60 }: { size?: number }) {
+  const scale = size / 60;
   return (
     <Svg width={size} height={size} viewBox="0 0 60 60" fill="none">
-      <Circle cx={30} cy={30} r={28} fill={COLORS.primary} />
+      {/* Green rounded background */}
+      <Rect x={2} y={2} width={56} height={56} rx={14} fill={COLORS.primary} />
+      {/* Top arc (concave/dome) */}
       <Path
-        d="M20 25C20 22.2386 22.2386 20 25 20H35C37.7614 20 40 22.2386 40 25V35C40 37.7614 37.7614 40 35 40H25C22.2386 40 20 37.7614 20 35V25Z"
-        fill={COLORS.white}
-      />
-      <Path
-        d="M25 30L28 33L35 26"
-        stroke={COLORS.primary}
-        strokeWidth={3}
+        d="M16 24C16 24 23 18 30 18C37 18 44 24 44 24"
+        stroke={COLORS.backgroundDark}
+        strokeWidth={4}
         strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Middle arc (convex/smile) */}
+      <Path
+        d="M14 32C14 32 21 38 30 38C39 38 46 32 46 32"
+        stroke={COLORS.backgroundDark}
+        strokeWidth={4}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Bottom arc (convex/smile, smaller) */}
+      <Path
+        d="M18 42C18 42 23 46 30 46C37 46 42 42 42 42"
+        stroke={COLORS.backgroundDark}
+        strokeWidth={4}
+        strokeLinecap="round"
+        fill="none"
       />
     </Svg>
   );

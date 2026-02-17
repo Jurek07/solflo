@@ -22,7 +22,7 @@ import {
   CheckIcon, 
   ClockIcon, 
   SearchIcon, 
-  UserIcon,
+  WalletIcon,
   GridIcon,
   LockIcon,
 } from '../components/Icons';
@@ -160,7 +160,7 @@ export function DashboardScreen({ navigation }: Props) {
             <SearchIcon size={24} color={COLORS.white} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerButton} onPress={handleDisconnect}>
-            <UserIcon size={24} color={COLORS.white} />
+            <WalletIcon size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </View>
