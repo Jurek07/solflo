@@ -48,6 +48,15 @@ export async function markLinkAsUsed(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function deletePaymentLink(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('payment_links')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 export async function recordPayment(payment: Omit<Payment, 'id' | 'created_at'>): Promise<Payment> {
   const { data, error } = await supabase
     .from('payments')

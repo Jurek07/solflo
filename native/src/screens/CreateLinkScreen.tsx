@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
   },
   backButton: {
     color: COLORS.primary,

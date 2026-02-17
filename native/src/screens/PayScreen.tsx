@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
     alignItems: 'center',
   },
   logo: {

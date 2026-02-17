@@ -13,7 +13,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
-import { getPaymentLinks } from '../lib/supabase';
+import { getPaymentLinks, deletePaymentLink } from '../lib/supabase';
 import { PaymentLink } from '../types';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -61,6 +61,29 @@ export function DashboardScreen({ navigation }: Props) {
     } catch (error) {
       console.error('Share failed:', error);
     }
+  };
+
+  const handleDelete = (link: PaymentLink) => {
+    Alert.alert(
+      'Delete Payment Link',
+      `Are you sure you want to delete "${link.title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePaymentLink(link.id);
+              setLinks(links.filter(l => l.id !== link.id));
+            } catch (error) {
+              console.error('Delete failed:', error);
+              Alert.alert('Error', 'Failed to delete payment link');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleDisconnect = () => {
@@ -114,12 +137,20 @@ export function DashboardScreen({ navigation }: Props) {
           )}
         </View>
         
-        <TouchableOpacity
-          style={styles.shareButton}
-          onPress={() => handleShare(item)}
-        >
-          <Text style={styles.shareButtonText}>Share</Text>
-        </TouchableOpacity>
+        <View style={styles.linkActions}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDelete(item)}
+          >
+            <Text style={styles.deleteButtonText}>🗑️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={() => handleShare(item)}
+          >
+            <Text style={styles.shareButtonText}>Share</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -190,7 +221,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
   },
   logo: {
     fontSize: 24,
@@ -300,6 +331,21 @@ const styles = StyleSheet.create({
   tagText: {
     color: COLORS.textSecondary,
     fontSize: 12,
+  },
+  linkActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: '#ff4444',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    fontSize: 16,
   },
   shareButton: {
     backgroundColor: COLORS.primary,
