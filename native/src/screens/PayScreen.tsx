@@ -9,7 +9,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { useWallet } from '../hooks/useWallet';
+import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLink, markLinkAsUsed, recordPayment } from '../lib/supabase';
 import { PaymentLink } from '../types';
 import { COLORS } from '../lib/constants';

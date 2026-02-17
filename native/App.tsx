@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
 
+import { WalletProvider } from './src/contexts/WalletContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateLinkScreen } from './src/screens/CreateLinkScreen';
@@ -41,32 +42,34 @@ const linking = {
 
 export default function App() {
   return (
-    <NavigationContainer theme={theme} linking={linking}>
-      <StatusBar style="light" />
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen
-          name="CreateLink"
-          component={CreateLinkScreen}
-          options={{
-            animation: 'slide_from_bottom',
+    <WalletProvider>
+      <NavigationContainer theme={theme} linking={linking}>
+        <StatusBar style="light" />
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
           }}
-        />
-        <Stack.Screen
-          name="Pay"
-          component={PayScreen}
-          options={{
-            animation: 'fade',
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen
+            name="CreateLink"
+            component={CreateLinkScreen}
+            options={{
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="Pay"
+            component={PayScreen}
+            options={{
+              animation: 'fade',
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </WalletProvider>
   );
 }
