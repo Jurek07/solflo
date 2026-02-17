@@ -2,10 +2,12 @@ import React from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 
 import { HomeScreen } from './src/screens/HomeScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateLinkScreen } from './src/screens/CreateLinkScreen';
+import { PayScreen } from './src/screens/PayScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,9 +22,26 @@ const theme = {
   },
 };
 
+// Deep linking configuration
+const linking = {
+  prefixes: [
+    Linking.createURL('/'),
+    'https://solflolab.com',
+    'solflolab://',
+  ],
+  config: {
+    screens: {
+      Home: '',
+      Dashboard: 'dashboard',
+      CreateLink: 'create',
+      Pay: 'pay/:linkId',
+    },
+  },
+};
+
 export default function App() {
   return (
-    <NavigationContainer theme={theme}>
+    <NavigationContainer theme={theme} linking={linking}>
       <StatusBar style="light" />
       <Stack.Navigator
         initialRouteName="Home"
@@ -38,6 +57,13 @@ export default function App() {
           component={CreateLinkScreen}
           options={{
             animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="Pay"
+          component={PayScreen}
+          options={{
+            animation: 'fade',
           }}
         />
       </Stack.Navigator>
