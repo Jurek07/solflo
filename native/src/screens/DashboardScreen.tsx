@@ -157,7 +157,9 @@ export function DashboardScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
         
-        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+        <View style={styles.headerCenter}>
+          <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+        </View>
         
         <View style={styles.headerRight}>
           <TouchableOpacity 
@@ -218,17 +220,15 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     paddingBottom: 16,
-    position: 'relative',
   },
   headerLeft: {
-    position: 'absolute',
-    left: 16,
-    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
+    width: 88,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
   },
   headerButton: {
     width: 44,
@@ -236,11 +236,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerRight: {
-    position: 'absolute',
-    right: 16,
-    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
+    width: 88,
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   headerLogo: {
     height: 55,
