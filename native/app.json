@@ -43,9 +43,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-linking"
-    ],
     "extra": {
       "supabaseUrl": "https://oraqsjmlbyhouaontlab.supabase.co",
       "rpcEndpoint": "https://mainnet.helius-rpc.com"
