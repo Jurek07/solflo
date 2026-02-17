@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PaymentLink, Payment } from '../types';
 
 const SUPABASE_URL = 'https://oraqsjmlbyhouaontlab.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; // Replace with env variable
+const SUPABASE_ANON_KEY = 'sb_publishable_-Ipr68cU6IX9vJs71lNNBA_h20L_dhR';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
