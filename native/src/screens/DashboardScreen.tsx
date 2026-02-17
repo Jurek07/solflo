@@ -17,6 +17,7 @@ import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { 
   LinkIcon, 
   PlusIcon, 
@@ -55,9 +56,11 @@ export function DashboardScreen({ navigation }: Props) {
     }
   }, [publicKey]);
 
-  useEffect(() => {
-    fetchLinks();
-  }, [fetchLinks]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchLinks();
+    }, [fetchLinks])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -148,7 +151,9 @@ export function DashboardScreen({ navigation }: Props) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+        <View style={styles.headerLogoContainer}>
+          <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+        </View>
         
         <View style={styles.headerLeft}>
           <TouchableOpacity 
@@ -217,16 +222,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    height: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 70 : 110,
+    justifyContent: 'flex-end',
+    paddingBottom: 12,
+  },
+  headerLogoContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
-    paddingBottom: 16,
-    height: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 80 : 120,
   },
   headerLeft: {
     position: 'absolute',
     left: 16,
-    bottom: 16,
+    bottom: 12,
   },
   headerButton: {
     width: 44,
@@ -237,7 +247,7 @@ const styles = StyleSheet.create({
   headerRight: {
     position: 'absolute',
     right: 16,
-    bottom: 16,
+    bottom: 12,
     flexDirection: 'row',
   },
   headerLogo: {
