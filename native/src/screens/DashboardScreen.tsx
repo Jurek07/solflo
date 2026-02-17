@@ -55,7 +55,7 @@ export function DashboardScreen({ navigation }: Props) {
     const url = `https://solflolab.com/pay/${link.id}`;
     try {
       await Share.share({
-        message: `Pay ${link.amount} ${link.currency} - ${link.title}\n${url}`,
+        message: `💸 Betaal ${link.amount} ${link.currency} - ${link.title}\n${url}`,
         url,
       });
     } catch (error) {
@@ -65,12 +65,12 @@ export function DashboardScreen({ navigation }: Props) {
 
   const handleDelete = (link: PaymentLink) => {
     Alert.alert(
-      'Delete Payment Link',
-      `Are you sure you want to delete "${link.title}"?`,
+      'Link verwijderen? 🗑️',
+      `Weet je zeker dat je "${link.title}" wilt verwijderen?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Annuleren', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Verwijderen',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -78,7 +78,7 @@ export function DashboardScreen({ navigation }: Props) {
               setLinks(links.filter(l => l.id !== link.id));
             } catch (error) {
               console.error('Delete failed:', error);
-              Alert.alert('Error', 'Failed to delete payment link');
+              Alert.alert('Oeps!', 'Kon de link niet verwijderen');
             }
           },
         },
@@ -88,12 +88,12 @@ export function DashboardScreen({ navigation }: Props) {
 
   const handleDisconnect = () => {
     Alert.alert(
-      'Disconnect Wallet',
-      'Are you sure you want to disconnect?',
+      'Uitloggen? 👋',
+      'Weet je zeker dat je wilt uitloggen?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Annuleren', style: 'cancel' },
         {
-          text: 'Disconnect',
+          text: 'Uitloggen',
           style: 'destructive',
           onPress: () => {
             disconnect();
@@ -107,48 +107,48 @@ export function DashboardScreen({ navigation }: Props) {
   const renderLink = ({ item }: { item: PaymentLink }) => (
     <View style={styles.linkCard}>
       <View style={styles.linkHeader}>
-        <Text style={styles.linkTitle}>{item.title}</Text>
+        <View style={styles.linkTitleRow}>
+          <Text style={styles.linkEmoji}>{item.private_payment ? '🔒' : '💳'}</Text>
+          <Text style={styles.linkTitle} numberOfLines={1}>{item.title}</Text>
+        </View>
         <View style={[styles.badge, item.used && styles.badgeUsed]}>
-          <Text style={styles.badgeText}>
-            {item.used ? 'Used' : 'Active'}
+          <Text style={[styles.badgeText, item.used && styles.badgeTextUsed]}>
+            {item.used ? 'Betaald ✓' : 'Actief'}
           </Text>
         </View>
       </View>
       
       <Text style={styles.linkAmount}>
-        {item.amount} {item.currency}
+        {item.amount} <Text style={styles.linkCurrency}>{item.currency}</Text>
       </Text>
       
       {item.description && (
-        <Text style={styles.linkDescription}>{item.description}</Text>
+        <Text style={styles.linkDescription} numberOfLines={2}>{item.description}</Text>
       )}
       
       <View style={styles.linkFooter}>
         <View style={styles.linkTags}>
           {item.single_use && (
             <View style={styles.tag}>
-              <Text style={styles.tagText}>Single-use</Text>
-            </View>
-          )}
-          {item.private_payment && (
-            <View style={[styles.tag, styles.tagPrivate]}>
-              <Text style={styles.tagText}>🔒 Private</Text>
+              <Text style={styles.tagText}>Eenmalig</Text>
             </View>
           )}
         </View>
         
         <View style={styles.linkActions}>
           <TouchableOpacity
-            style={styles.deleteButton}
+            style={styles.actionButton}
             onPress={() => handleDelete(item)}
+            activeOpacity={0.7}
           >
-            <Text style={styles.deleteButtonText}>🗑️</Text>
+            <Text style={styles.actionIcon}>🗑️</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.shareButton}
             onPress={() => handleShare(item)}
+            activeOpacity={0.8}
           >
-            <Text style={styles.shareButtonText}>Share</Text>
+            <Text style={styles.shareButtonText}>Delen</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -160,9 +160,12 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
       {/* Header */}
       <View style={styles.header}>
         <View>
+          <Text style={styles.greeting}>Hoi! 👋</Text>
           <Text style={styles.logo}>
             <Text style={styles.logoSol}>Sol</Text>
             <Text style={styles.logoFlo}>Flo</Text>
@@ -170,8 +173,9 @@ export function DashboardScreen({ navigation }: Props) {
           </Text>
         </View>
         
-        <TouchableOpacity style={styles.walletButton} onPress={handleDisconnect}>
+        <TouchableOpacity style={styles.walletButton} onPress={handleDisconnect} activeOpacity={0.7}>
           <Text style={styles.walletText}>{shortAddress}</Text>
+          <Text style={styles.walletIcon}>👛</Text>
         </TouchableOpacity>
       </View>
 
@@ -179,8 +183,10 @@ export function DashboardScreen({ navigation }: Props) {
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => navigation.navigate('CreateLink')}
+        activeOpacity={0.8}
       >
-        <Text style={styles.createButtonText}>+ Create Payment Link</Text>
+        <Text style={styles.createButtonIcon}>➕</Text>
+        <Text style={styles.createButtonText}>Nieuwe betaallink</Text>
       </TouchableOpacity>
 
       {/* Links List */}
@@ -189,20 +195,23 @@ export function DashboardScreen({ navigation }: Props) {
         renderItem={renderLink}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
             tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
           />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
+            <Text style={styles.emptyEmoji}>📭</Text>
             <Text style={styles.emptyText}>
-              {loading ? 'Loading...' : 'No payment links yet'}
+              {loading ? 'Laden...' : 'Nog geen betaallinks'}
             </Text>
             <Text style={styles.emptySubtext}>
-              Create your first link to get started
+              Maak je eerste link en deel 'm!
             </Text>
           </View>
         }
@@ -221,10 +230,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
+  },
+  greeting: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 4,
   },
   logo: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
   },
   logoSol: {
@@ -237,138 +251,188 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   walletButton: {
-    backgroundColor: COLORS.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    paddingVertical: 10,
+    borderRadius: 25,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   walletText: {
     color: COLORS.text,
     fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  walletIcon: {
+    fontSize: 16,
   },
   createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: COLORS.primary,
     marginHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
     marginBottom: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  createButtonIcon: {
+    fontSize: 18,
+    marginRight: 8,
   },
   createButtonText: {
-    color: COLORS.background,
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.white,
+    fontSize: 17,
+    fontWeight: '700',
   },
   list: {
     padding: 20,
     paddingTop: 0,
   },
   linkCard: {
-    backgroundColor: COLORS.card,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: 12,
+    backgroundColor: COLORS.white,
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 16,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   linkHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  linkTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  linkEmoji: {
+    fontSize: 20,
+    marginRight: 10,
   },
   linkTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: COLORS.text,
     flex: 1,
   },
   badge: {
-    backgroundColor: COLORS.primary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   badgeUsed: {
-    backgroundColor: COLORS.textSecondary + '20',
+    backgroundColor: COLORS.textSecondary + '15',
   },
   badgeText: {
     color: COLORS.primary,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  badgeTextUsed: {
+    color: COLORS.textSecondary,
   },
   linkAmount: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.text,
     marginBottom: 8,
+  },
+  linkCurrency: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   linkDescription: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginBottom: 12,
+    marginBottom: 16,
+    lineHeight: 20,
   },
   linkFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: 16,
   },
   linkTags: {
     flexDirection: 'row',
     gap: 8,
   },
   tag: {
-    backgroundColor: COLORS.border,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  tagPrivate: {
-    backgroundColor: COLORS.primary + '20',
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   tagText: {
     color: COLORS.textSecondary,
     fontSize: 12,
+    fontWeight: '500',
   },
   linkActions: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
   },
-  deleteButton: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: '#ff4444',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  deleteButtonText: {
-    fontSize: 16,
+  actionIcon: {
+    fontSize: 18,
   },
   shareButton: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
   },
   shareButtonText: {
-    color: COLORS.background,
-    fontSize: 14,
-    fontWeight: '500',
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '600',
   },
   empty: {
     alignItems: 'center',
     paddingVertical: 60,
   },
+  emptyEmoji: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
   emptyText: {
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: '600',
     color: COLORS.text,
     marginBottom: 8,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 15,
     color: COLORS.textSecondary,
   },
 });

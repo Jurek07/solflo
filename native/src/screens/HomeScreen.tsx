@@ -36,7 +36,7 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -49,39 +49,43 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* Hero */}
       <View style={styles.hero}>
+        <Text style={styles.emoji}>💸</Text>
         <Text style={styles.title}>
-          Payment links for{' '}
+          Betalen met{'\n'}
           <Text style={styles.highlight}>Solana</Text>
         </Text>
         
         <Text style={styles.subtitle}>
-          Accept SOL & USDC. No fees. Direct to wallet.
+          Maak betaallinks en ontvang SOL & USDC{'\n'}direct in je wallet. Geen fees! ✨
         </Text>
 
         <TouchableOpacity
           style={[styles.button, connecting && styles.buttonDisabled]}
           onPress={handleConnect}
           disabled={connecting}
+          activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>
-            {connecting ? 'Connecting...' : 'Connect Wallet'}
+            {connecting ? 'Verbinden...' : '🔗 Verbind Wallet'}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Stats */}
-      <View style={styles.stats}>
+      <View style={styles.statsCard}>
         <View style={styles.stat}>
           <Text style={styles.statValue}>0%</Text>
           <Text style={styles.statLabel}>Fees</Text>
         </View>
+        <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>&lt;1s</Text>
-          <Text style={styles.statLabel}>Settlement</Text>
+          <Text style={styles.statLabel}>Snelheid</Text>
         </View>
+        <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>$0.001</Text>
-          <Text style={styles.statLabel}>Network cost</Text>
+          <Text style={styles.statLabel}>Netwerk</Text>
         </View>
       </View>
 
@@ -89,26 +93,17 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.features}>
         <View style={styles.feature}>
           <Text style={styles.featureIcon}>⚡</Text>
-          <View>
-            <Text style={styles.featureTitle}>Instant</Text>
-            <Text style={styles.featureDesc}>Create links in seconds</Text>
-          </View>
+          <Text style={styles.featureText}>Instant betaallinks</Text>
         </View>
         
         <View style={styles.feature}>
           <Text style={styles.featureIcon}>🔒</Text>
-          <View>
-            <Text style={styles.featureTitle}>Non-custodial</Text>
-            <Text style={styles.featureDesc}>Funds go directly to your wallet</Text>
-          </View>
+          <Text style={styles.featureText}>Direct naar je wallet</Text>
         </View>
         
         <View style={styles.feature}>
-          <Text style={styles.featureIcon}>🔗</Text>
-          <View>
-            <Text style={styles.featureTitle}>Single-use links</Text>
-            <Text style={styles.featureDesc}>Auto-expire after payment</Text>
-          </View>
+          <Text style={styles.featureIcon}>🎯</Text>
+          <Text style={styles.featureText}>Eenmalig of herbruikbaar</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -122,10 +117,11 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
+    alignItems: 'center',
   },
   logo: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
   },
   logoSol: {
@@ -141,47 +137,71 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+  },
+  emoji: {
+    fontSize: 64,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    lineHeight: 44,
   },
   highlight: {
     color: COLORS.primary,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
+    lineHeight: 24,
   },
   button: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingHorizontal: 40,
+    paddingVertical: 18,
+    borderRadius: 30,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: COLORS.background,
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: '700',
   },
-  stats: {
+  statsCard: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 24,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: 20,
+    paddingVertical: 20,
+    borderRadius: 20,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   stat: {
     alignItems: 'center',
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: COLORS.border,
   },
   statValue: {
     fontSize: 24,
@@ -189,34 +209,27 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textSecondary,
     marginTop: 4,
   },
   features: {
-    padding: 20,
-    gap: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 24,
+    paddingBottom: 32,
   },
   feature: {
-    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 12,
+    flex: 1,
   },
   featureIcon: {
-    fontSize: 24,
+    fontSize: 28,
+    marginBottom: 8,
   },
-  featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  featureDesc: {
-    fontSize: 14,
+  featureText: {
+    fontSize: 12,
     color: COLORS.textSecondary,
+    textAlign: 'center',
   },
 });

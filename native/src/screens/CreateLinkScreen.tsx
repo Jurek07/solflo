@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { createPaymentLink } from '../lib/supabase';
@@ -34,18 +35,18 @@ export function CreateLinkScreen({ navigation }: Props) {
 
   const handleCreate = async () => {
     if (!publicKey) {
-      Alert.alert('Error', 'Wallet not connected');
+      Alert.alert('Oeps! 😅', 'Wallet niet verbonden');
       return;
     }
 
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a title');
+      Alert.alert('Oeps! 😅', 'Voer een titel in');
       return;
     }
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      Alert.alert('Oeps! 😅', 'Voer een geldig bedrag in');
       return;
     }
 
@@ -62,12 +63,12 @@ export function CreateLinkScreen({ navigation }: Props) {
         private_payment: privatePayment,
       });
 
-      Alert.alert('Success', 'Payment link created!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Gelukt! 🎉', 'Je betaallink is aangemaakt!', [
+        { text: 'Top!', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
       console.error('Failed to create link:', error);
-      Alert.alert('Error', 'Failed to create payment link');
+      Alert.alert('Oeps! 😢', 'Kon de link niet aanmaken');
     } finally {
       setLoading(false);
     }
@@ -75,134 +76,150 @@ export function CreateLinkScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Payment Link</Text>
-          <View style={{ width: 50 }} />
-        </View>
-
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Title */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Title *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Invoice #123"
-              placeholderTextColor={COLORS.textSecondary}
-              value={title}
-              onChangeText={setTitle}
-            />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.backIcon}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Nieuwe betaallink 💸</Text>
+            <View style={styles.headerSpacer} />
           </View>
 
-          {/* Amount */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Amount *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0.00"
-              placeholderTextColor={COLORS.textSecondary}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-            />
-          </View>
+          {/* Form Card */}
+          <View style={styles.card}>
+            {/* Title */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Waar is het voor? ✏️</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="bijv. Etentje, Cadeautje..."
+                placeholderTextColor={COLORS.textSecondary}
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
 
-          {/* Currency */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Currency</Text>
-            <View style={styles.currencyRow}>
-              <TouchableOpacity
-                style={[
-                  styles.currencyButton,
-                  currency === 'SOL' && styles.currencyButtonActive,
-                ]}
-                onPress={() => setCurrency('SOL')}
-              >
-                <Text
-                  style={[
-                    styles.currencyText,
-                    currency === 'SOL' && styles.currencyTextActive,
-                  ]}
-                >
-                  SOL
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.currencyButton,
-                  currency === 'USDC' && styles.currencyButtonActive,
-                ]}
-                onPress={() => setCurrency('USDC')}
-              >
-                <Text
-                  style={[
-                    styles.currencyText,
-                    currency === 'USDC' && styles.currencyTextActive,
-                  ]}
-                >
-                  USDC
-                </Text>
-              </TouchableOpacity>
+            {/* Amount */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Bedrag 💰</Text>
+              <View style={styles.amountRow}>
+                <TextInput
+                  style={[styles.input, styles.amountInput]}
+                  placeholder="0.00"
+                  placeholderTextColor={COLORS.textSecondary}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="decimal-pad"
+                />
+                <View style={styles.currencyPicker}>
+                  <TouchableOpacity
+                    style={[
+                      styles.currencyOption,
+                      currency === 'SOL' && styles.currencyOptionActive,
+                    ]}
+                    onPress={() => setCurrency('SOL')}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.currencyText,
+                        currency === 'SOL' && styles.currencyTextActive,
+                      ]}
+                    >
+                      SOL
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.currencyOption,
+                      currency === 'USDC' && styles.currencyOptionActive,
+                    ]}
+                    onPress={() => setCurrency('USDC')}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.currencyText,
+                        currency === 'USDC' && styles.currencyTextActive,
+                      ]}
+                    >
+                      USDC
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            {/* Description */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Extra info (optioneel) 📝</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Voeg een beschrijving toe..."
+                placeholderTextColor={COLORS.textSecondary}
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+              />
             </View>
           </View>
 
-          {/* Description */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Description (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Add a note for the payer..."
-              placeholderTextColor={COLORS.textSecondary}
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          {/* Options */}
-          <View style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Options</Text>
+          {/* Options Card */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Opties ⚙️</Text>
 
             <View style={styles.option}>
-              <View>
-                <Text style={styles.optionLabel}>Single-use link</Text>
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionLabel}>Eenmalige link 🎯</Text>
                 <Text style={styles.optionDesc}>
-                  Expires after one payment
+                  Verloopt na één betaling
                 </Text>
               </View>
               <Switch
                 value={singleUse}
                 onValueChange={setSingleUse}
-                trackColor={{ false: COLORS.border, true: COLORS.primary }}
-                thumbColor={COLORS.text}
+                trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
+                thumbColor={singleUse ? COLORS.primary : COLORS.white}
+                ios_backgroundColor={COLORS.border}
               />
             </View>
 
-            <View style={styles.option}>
-              <View>
-                <Text style={styles.optionLabel}>🔒 Private Payment</Text>
+            <View style={[styles.option, styles.optionLast]}>
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionLabel}>Privé betaling 🔒</Text>
                 <Text style={styles.optionDesc}>
-                  Hide sender & receiver (ZK privacy)
+                  Verberg verzender & ontvanger
                 </Text>
               </View>
               <Switch
                 value={privatePayment}
                 onValueChange={setPrivatePayment}
-                trackColor={{ false: COLORS.border, true: COLORS.primary }}
-                thumbColor={COLORS.text}
+                trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
+                thumbColor={privatePayment ? COLORS.primary : COLORS.white}
+                ios_backgroundColor={COLORS.border}
               />
             </View>
 
             {privatePayment && (
               <View style={styles.privacyNote}>
                 <Text style={styles.privacyNoteText}>
-                  Privacy fee: 0.008 SOL + 0.35% (paid by sender)
+                  💡 Privacy fee: 0.008 SOL + 0.35% (betaald door verzender)
                 </Text>
               </View>
             )}
@@ -213,15 +230,16 @@ export function CreateLinkScreen({ navigation }: Props) {
             style={[styles.createButton, loading && styles.createButtonDisabled]}
             onPress={handleCreate}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.background} />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.createButtonText}>Create Link</Text>
+              <Text style={styles.createButtonText}>Maak betaallink aan ✨</Text>
             )}
           </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -231,42 +249,70 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  flex: {
+    flex: 1,
+  },
   scroll: {
     flexGrow: 1,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
   },
   backButton: {
-    color: COLORS.primary,
-    fontSize: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  backIcon: {
+    fontSize: 24,
+    color: COLORS.text,
   },
   headerTitle: {
+    flex: 1,
     color: COLORS.text,
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  form: {
+  headerSpacer: {
+    width: 44,
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 20,
+    marginBottom: 20,
     padding: 20,
+    borderRadius: 20,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   field: {
     marginBottom: 20,
   },
   label: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   input: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
     padding: 16,
     color: COLORS.text,
     fontSize: 16,
@@ -275,56 +321,62 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  currencyRow: {
+  amountRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  currencyButton: {
+  amountInput: {
     flex: 1,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
+    fontSize: 24,
+    fontWeight: '600',
   },
-  currencyButtonActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '10',
+  currencyPicker: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
+    padding: 4,
+  },
+  currencyOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  currencyOptionActive: {
+    backgroundColor: COLORS.primary,
   },
   currencyText: {
     color: COLORS.textSecondary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   currencyTextActive: {
-    color: COLORS.primary,
-  },
-  optionsSection: {
-    marginTop: 20,
-    marginBottom: 20,
+    color: COLORS.white,
   },
   sectionTitle: {
     color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     marginBottom: 16,
   },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  optionLast: {
+    borderBottomWidth: 0,
+  },
+  optionInfo: {
+    flex: 1,
+    marginRight: 16,
   },
   optionLabel: {
     color: COLORS.text,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   optionDesc: {
     color: COLORS.textSecondary,
@@ -333,26 +385,33 @@ const styles = StyleSheet.create({
   },
   privacyNote: {
     backgroundColor: COLORS.primary + '10',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 12,
   },
   privacyNoteText: {
     color: COLORS.primary,
     fontSize: 13,
+    fontWeight: '500',
   },
   createButton: {
     backgroundColor: COLORS.primary,
-    padding: 18,
-    borderRadius: 12,
+    marginHorizontal: 20,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
-    marginTop: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   createButtonDisabled: {
     opacity: 0.6,
   },
   createButtonText: {
-    color: COLORS.background,
+    color: COLORS.white,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

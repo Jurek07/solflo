@@ -41,14 +41,14 @@ export function PayScreen({ navigation, route }: Props) {
     try {
       const data = await getPaymentLink(linkId);
       if (!data) {
-        setError('Payment link not found');
+        setError('Betaallink niet gevonden 🔍');
       } else if (data.used && data.single_use) {
-        setError('This payment link has already been used');
+        setError('Deze link is al gebruikt ✓');
       } else {
         setLink(data);
       }
     } catch (err) {
-      setError('Failed to load payment link');
+      setError('Kon de link niet laden 😢');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function PayScreen({ navigation, route }: Props) {
     try {
       await connect();
     } catch (err) {
-      Alert.alert('Connection Failed', 'Could not connect to wallet');
+      Alert.alert('Oeps! 😅', 'Kon niet verbinden met wallet');
     }
   };
 
@@ -68,10 +68,8 @@ export function PayScreen({ navigation, route }: Props) {
     setPaying(true);
 
     try {
-      // Import transaction builder
       const { buildPaymentTransaction } = await import('../lib/transactions');
       
-      // Build the transaction
       const transaction = await buildPaymentTransaction({
         payerPublicKey: publicKey,
         recipientAddress: link.merchant_wallet,
@@ -79,10 +77,8 @@ export function PayScreen({ navigation, route }: Props) {
         currency: link.currency,
       });
 
-      // Sign and send
       const signature = await signAndSendTransaction(transaction);
 
-      // Record payment in database
       await recordPayment({
         link_id: link.id,
         payer_wallet: publicKey.toBase58(),
@@ -92,7 +88,6 @@ export function PayScreen({ navigation, route }: Props) {
         is_private: false,
       });
 
-      // Mark link as used if single-use
       if (link.single_use) {
         await markLinkAsUsed(link.id);
       }
@@ -100,23 +95,20 @@ export function PayScreen({ navigation, route }: Props) {
       setPaid(true);
     } catch (err: any) {
       console.error('Payment failed:', err);
-      Alert.alert('Payment Failed', err.message || 'Transaction could not be completed');
+      Alert.alert('Oeps! 😢', err.message || 'Betaling mislukt');
     } finally {
       setPaying(false);
     }
-  };
-
-  const viewOnExplorer = (signature: string) => {
-    Linking.openURL(`https://solscan.io/tx/${signature}`);
   };
 
   // Loading state
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading payment...</Text>
+          <Text style={styles.loadingText}>Even laden... ⏳</Text>
         </View>
       </SafeAreaView>
     );
@@ -126,14 +118,16 @@ export function PayScreen({ navigation, route }: Props) {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
-          <Text style={styles.errorIcon}>❌</Text>
+          <Text style={styles.errorEmoji}>😕</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
           >
-            <Text style={styles.secondaryButtonText}>Go Back</Text>
+            <Text style={styles.secondaryButtonText}>Terug</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -144,17 +138,19 @@ export function PayScreen({ navigation, route }: Props) {
   if (paid) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
-          <Text style={styles.successIcon}>✅</Text>
-          <Text style={styles.successTitle}>Payment Complete!</Text>
+          <Text style={styles.successEmoji}>🎉</Text>
+          <Text style={styles.successTitle}>Betaald!</Text>
           <Text style={styles.successSubtitle}>
-            {link?.amount} {link?.currency} sent successfully
+            {link?.amount} {link?.currency} verstuurd
           </Text>
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={styles.primaryButton}
             onPress={() => navigation.navigate('Home')}
+            activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>Done</Text>
+            <Text style={styles.primaryButtonText}>Top! 👍</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -164,6 +160,8 @@ export function PayScreen({ navigation, route }: Props) {
   // Payment form
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.logo}>
@@ -176,21 +174,25 @@ export function PayScreen({ navigation, route }: Props) {
       {/* Payment Card */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Payment Request</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardEmoji}>💸</Text>
+            <Text style={styles.cardLabel}>Betaalverzoek</Text>
+          </View>
+          
           <Text style={styles.cardTitle}>{link?.title}</Text>
           
           {link?.description && (
             <Text style={styles.cardDescription}>{link.description}</Text>
           )}
 
-          <View style={styles.amountContainer}>
+          <View style={styles.amountBox}>
             <Text style={styles.amount}>{link?.amount}</Text>
             <Text style={styles.currency}>{link?.currency}</Text>
           </View>
 
           {link?.private_payment && (
             <View style={styles.privacyBadge}>
-              <Text style={styles.privacyBadgeText}>🔒 Private Payment</Text>
+              <Text style={styles.privacyBadgeText}>🔒 Privé betaling</Text>
               <Text style={styles.privacyFee}>
                 +0.008 SOL + 0.35% privacy fee
               </Text>
@@ -198,7 +200,7 @@ export function PayScreen({ navigation, route }: Props) {
           )}
 
           <View style={styles.recipient}>
-            <Text style={styles.recipientLabel}>To:</Text>
+            <Text style={styles.recipientLabel}>Naar</Text>
             <Text style={styles.recipientAddress}>
               {link?.merchant_wallet.slice(0, 8)}...{link?.merchant_wallet.slice(-8)}
             </Text>
@@ -208,41 +210,45 @@ export function PayScreen({ navigation, route }: Props) {
         {/* Action Button */}
         {!connected ? (
           <TouchableOpacity
-            style={[styles.button, connecting && styles.buttonDisabled]}
+            style={[styles.primaryButton, connecting && styles.buttonDisabled]}
             onPress={handleConnect}
             disabled={connecting}
+            activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>
-              {connecting ? 'Connecting...' : 'Connect Wallet to Pay'}
+            <Text style={styles.primaryButtonText}>
+              {connecting ? 'Verbinden...' : '🔗 Verbind wallet om te betalen'}
             </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.button, paying && styles.buttonDisabled]}
+            style={[styles.primaryButton, paying && styles.buttonDisabled]}
             onPress={handlePay}
             disabled={paying}
+            activeOpacity={0.8}
           >
             {paying ? (
-              <ActivityIndicator color={COLORS.background} />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.buttonText}>
-                Pay {link?.amount} {link?.currency}
+              <Text style={styles.primaryButtonText}>
+                Betaal {link?.amount} {link?.currency} 💳
               </Text>
             )}
           </TouchableOpacity>
         )}
 
         {connected && (
-          <Text style={styles.connectedAs}>
-            Connected: {publicKey?.toBase58().slice(0, 8)}...
-          </Text>
+          <View style={styles.connectedBadge}>
+            <Text style={styles.connectedText}>
+              👛 {publicKey?.toBase58().slice(0, 8)}...
+            </Text>
+          </View>
         )}
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Powered by SolFloLab • Non-custodial
+          Powered by SolFloLab ⚡ Non-custodial
         </Text>
       </View>
     </SafeAreaView>
@@ -258,45 +264,46 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   loadingText: {
     color: COLORS.textSecondary,
     marginTop: 16,
     fontSize: 16,
   },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+  errorEmoji: {
+    fontSize: 80,
+    marginBottom: 20,
   },
   errorText: {
     color: COLORS.text,
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
-  successIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+  successEmoji: {
+    fontSize: 100,
+    marginBottom: 20,
   },
   successTitle: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   successSubtitle: {
     color: COLORS.textSecondary,
-    fontSize: 16,
-    marginBottom: 32,
+    fontSize: 18,
+    marginBottom: 40,
   },
   header: {
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 48 : 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
     alignItems: 'center',
   },
   logo: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
   },
   logoSol: {
@@ -314,108 +321,139 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 28,
     marginBottom: 24,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardEmoji: {
+    fontSize: 24,
+    marginRight: 10,
   },
   cardLabel: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    marginBottom: 8,
+    fontWeight: '500',
   },
   cardTitle: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   cardDescription: {
     color: COLORS.textSecondary,
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 20,
+    lineHeight: 22,
   },
-  amountContainer: {
+  amountBox: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 16,
+    backgroundColor: COLORS.background,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   amount: {
-    color: COLORS.primary,
-    fontSize: 48,
+    color: COLORS.text,
+    fontSize: 52,
     fontWeight: 'bold',
   },
   currency: {
     color: COLORS.primary,
     fontSize: 24,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: '700',
+    marginLeft: 10,
   },
   privacyBadge: {
-    backgroundColor: COLORS.primary + '15',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    backgroundColor: COLORS.primary + '10',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
   },
   privacyBadgeText: {
     color: COLORS.primary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   privacyFee: {
     color: COLORS.textSecondary,
-    fontSize: 12,
+    fontSize: 13,
     marginTop: 4,
   },
   recipient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: 16,
   },
   recipientLabel: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    marginRight: 8,
   },
   recipientAddress: {
     color: COLORS.text,
     fontSize: 14,
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '500',
   },
-  button: {
+  primaryButton: {
     backgroundColor: COLORS.primary,
-    padding: 18,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonText: {
-    color: COLORS.background,
+  primaryButtonText: {
+    color: COLORS.white,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   secondaryButton: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    padding: 18,
+    borderRadius: 16,
     alignItems: 'center',
-    minWidth: 150,
+    minWidth: 160,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   secondaryButtonText: {
     color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 17,
+    fontWeight: '600',
   },
-  connectedAs: {
+  connectedBadge: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  connectedText: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    textAlign: 'center',
-    marginTop: 16,
+    fontWeight: '500',
   },
   footer: {
     padding: 20,
@@ -423,6 +461,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: COLORS.textSecondary,
-    fontSize: 12,
+    fontSize: 13,
   },
 });
