@@ -25,6 +25,7 @@ import {
   WalletIcon,
   GridIcon,
   LockIcon,
+  SolFloLabLogo,
 } from '../components/Icons';
 
 type Props = {
@@ -149,7 +150,8 @@ export function DashboardScreen({ navigation }: Props) {
         </TouchableOpacity>
         
         <View style={styles.logoContainer}>
-          <Text style={styles.logo}>
+          <SolFloLabLogo size={36} />
+          <Text style={styles.logoText}>
             <Text style={styles.logoSol}>Sol</Text>
             <Text style={styles.logoFlo}>Flo</Text>
           </Text>
@@ -227,20 +229,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   logoContainer: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  logo: {
-    fontSize: 20,
+  logoText: {
+    fontSize: 22,
     fontWeight: 'bold',
+    marginLeft: 8,
   },
   logoSol: {
-    color: COLORS.white,
+    color: COLORS.textSecondary,
   },
   logoFlo: {
-    color: COLORS.backgroundDark,
+    color: COLORS.text,
   },
   list: {
     padding: 16,
