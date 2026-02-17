@@ -10,6 +10,7 @@ import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateLinkScreen } from './src/screens/CreateLinkScreen';
 import { PayScreen } from './src/screens/PayScreen';
 import { LinkDetailScreen } from './src/screens/LinkDetailScreen';
+import { SearchScreen } from './src/screens/SearchScreen';
 import { COLORS } from './src/lib/constants';
 
 const Stack = createNativeStackNavigator();
@@ -39,6 +40,7 @@ const linking = {
       CreateLink: 'create',
       Pay: 'pay/:linkId',
       LinkDetail: 'link/:linkId',
+      Search: 'search',
     },
   },
 };
@@ -74,6 +76,13 @@ export default function App() {
           <Stack.Screen
             name="LinkDetail"
             component={LinkDetailScreen}
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="Search"
+            component={SearchScreen}
             options={{
               animation: 'slide_from_right',
             }}

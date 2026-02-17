@@ -5,11 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  RefreshControl,
-  Alert,
+  TextInput,
   Platform,
   StatusBar,
-  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
@@ -18,28 +16,27 @@ import { PaymentLink } from '../types';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { 
+  ArrowLeftIcon,
+  SearchIcon,
   LinkIcon, 
-  PlusIcon, 
   CheckIcon, 
-  ClockIcon, 
-  SearchIcon, 
-  WalletIcon,
-  CameraIcon,
+  ClockIcon,
   LockIcon,
 } from '../components/Icons';
-import * as Linking from 'expo-linking';
-
-const LogoHeader = require('../../assets/logo-header.png');
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-export function DashboardScreen({ navigation }: Props) {
-  const { publicKey, disconnect } = useWallet();
+type FilterType = 'all' | 'pending' | 'paid';
+
+export function SearchScreen({ navigation }: Props) {
+  const { publicKey } = useWallet();
   const [links, setLinks] = useState<PaymentLink[]>([]);
+  const [filteredLinks, setFilteredLinks] = useState<PaymentLink[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const fetchLinks = useCallback(async () => {
     if (!publicKey) return;
@@ -47,11 +44,11 @@ export function DashboardScreen({ navigation }: Props) {
     try {
       const data = await getPaymentLinks(publicKey.toBase58());
       setLinks(data);
+      setFilteredLinks(data);
     } catch (error) {
       console.error('Failed to fetch links:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [publicKey]);
 
@@ -59,28 +56,28 @@ export function DashboardScreen({ navigation }: Props) {
     fetchLinks();
   }, [fetchLinks]);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchLinks();
-  };
+  useEffect(() => {
+    let result = links;
 
-  const handleDisconnect = () => {
-    Alert.alert(
-      'Disconnect?',
-      'Are you sure you want to disconnect your wallet?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Disconnect',
-          style: 'destructive',
-          onPress: () => {
-            disconnect();
-            navigation.replace('Home');
-          },
-        },
-      ]
-    );
-  };
+    // Apply filter
+    if (filter === 'pending') {
+      result = result.filter(link => !link.used);
+    } else if (filter === 'paid') {
+      result = result.filter(link => link.used);
+    }
+
+    // Apply search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(link => 
+        link.title.toLowerCase().includes(query) ||
+        link.amount.toString().includes(query) ||
+        link.currency.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredLinks(result);
+  }, [links, filter, searchQuery]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -90,8 +87,6 @@ export function DashboardScreen({ navigation }: Props) {
   };
 
   const renderLink = ({ item }: { item: PaymentLink }) => {
-    // Count payments (we'll need to fetch this - for now show based on 'used' flag)
-    const paymentCount = item.used ? 1 : 0;
     const isExpired = item.used && item.single_use;
 
     return (
@@ -116,14 +111,14 @@ export function DashboardScreen({ navigation }: Props) {
           
           <View style={styles.linkBottom}>
             <View style={styles.statusBadge}>
-              {paymentCount > 0 ? (
+              {item.used ? (
                 <CheckIcon size={18} color={COLORS.primary} />
               ) : (
                 <ClockIcon size={18} color={COLORS.textSecondary} />
               )}
-              <Text style={[styles.statusText, paymentCount > 0 && styles.statusTextPaid]}>
-                {paymentCount > 0 
-                  ? `Paid ${paymentCount}x${isExpired ? ' - expired' : ''}`
+              <Text style={[styles.statusText, item.used && styles.statusTextPaid]}>
+                {item.used 
+                  ? `Paid${isExpired ? ' - expired' : ''}`
                   : 'Pending'
                 }
               </Text>
@@ -137,8 +132,6 @@ export function DashboardScreen({ navigation }: Props) {
     );
   };
 
-  const walletAddress = publicKey?.toBase58() || '';
-
   return (
     <LinearGradient
       colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
@@ -149,63 +142,73 @@ export function DashboardScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
-          style={styles.headerButton}
-          onPress={() => Linking.openURL('camera://')}
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
         >
-          <CameraIcon size={24} color={COLORS.white} />
+          <ArrowLeftIcon size={24} color={COLORS.white} />
         </TouchableOpacity>
-        
-        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
-        
-        <View style={styles.headerRight}>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Search')}
-          >
-            <SearchIcon size={24} color={COLORS.white} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleDisconnect}>
-            <WalletIcon size={24} color={COLORS.white} />
-          </TouchableOpacity>
+        <Text style={styles.headerTitle}>Search & Filter</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* Search Input */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <SearchIcon size={20} color={COLORS.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by title or amount"
+            placeholderTextColor={COLORS.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
         </View>
       </View>
 
-      {/* Links List */}
+      {/* Filter Pills */}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterPill, filter === 'all' && styles.filterPillActive]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+            All
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterPill, filter === 'pending' && styles.filterPillActive]}
+          onPress={() => setFilter('pending')}
+        >
+          <Text style={[styles.filterText, filter === 'pending' && styles.filterTextActive]}>
+            Not paid
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterPill, filter === 'paid' && styles.filterPillActive]}
+          onPress={() => setFilter('paid')}
+        >
+          <Text style={[styles.filterText, filter === 'paid' && styles.filterTextActive]}>
+            Paid
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Results */}
       <FlatList
-        data={links}
+        data={filteredLinks}
         renderItem={renderLink}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
-          />
-        }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <LinkIcon size={64} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>
-              {loading ? 'Loading...' : 'No payment links yet'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              Create your first link and share it!
+              {loading ? 'Loading...' : 'No results found'}
             </Text>
           </View>
         }
       />
-
-      {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateLink')}
-        activeOpacity={0.9}
-      >
-        <PlusIcon size={28} color={COLORS.white} />
-      </TouchableOpacity>
     </LinearGradient>
   );
 }
@@ -216,28 +219,76 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     paddingBottom: 16,
   },
-  headerButton: {
+  backButton: {
     width: 44,
     height: 44,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  headerRight: {
+  headerTitle: {
+    flex: 1,
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 44,
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  searchInputWrapper: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.card,
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  headerLogo: {
-    height: 44,
-    width: 140,
+  searchInput: {
+    flex: 1,
+    color: COLORS.text,
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    gap: 10,
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  filterPillActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filterTextActive: {
+    color: COLORS.white,
   },
   list: {
     padding: 16,
-    paddingBottom: 100,
+    paddingTop: 0,
   },
   linkCard: {
     flexDirection: 'row',
@@ -303,33 +354,10 @@ const styles = StyleSheet.create({
   },
   empty: {
     alignItems: 'center',
-    paddingVertical: 80,
+    paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.textSecondary,
-  },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    bottom: 32,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });
