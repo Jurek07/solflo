@@ -10,7 +10,10 @@ import {
   Platform,
   StatusBar,
   Image,
+  Dimensions,
 } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
@@ -228,9 +231,9 @@ const styles = StyleSheet.create({
   },
   headerLogoContainer: {
     position: 'absolute',
-    left: 0,
-    right: 0,
     bottom: 12,
+    left: (SCREEN_WIDTH - 160) / 2,
+    width: 160,
     alignItems: 'center',
   },
   headerLeft: {
