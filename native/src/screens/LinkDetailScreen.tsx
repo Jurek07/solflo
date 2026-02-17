@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { getPaymentLink, getPaymentsForLink, deletePaymentLink } from '../lib/supabase';
 import { PaymentLink, Payment } from '../types';
@@ -25,8 +26,9 @@ import {
   ShareIcon, 
   TrashIcon,
   ChevronDownIcon,
-  SolFloLabLogo,
 } from '../components/Icons';
+
+const LogoIcon = require('../../assets/logo-icon.png');
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -239,9 +241,7 @@ export function LinkDetailScreen({ navigation, route }: Props) {
               backgroundColor={COLORS.white}
               color={COLORS.backgroundDark}
             />
-            <View style={styles.qrLogo}>
-              <SolFloLabLogo size={50} />
-            </View>
+            <Image source={LogoIcon} style={styles.qrLogo} resizeMode="contain" />
           </View>
         </View>
 
@@ -421,9 +421,9 @@ const styles = StyleSheet.create({
   },
   qrLogo: {
     position: 'absolute',
-    backgroundColor: COLORS.white,
+    width: 50,
+    height: 50,
     borderRadius: 10,
-    padding: 2,
   },
   infoSection: {
     alignItems: 'center',

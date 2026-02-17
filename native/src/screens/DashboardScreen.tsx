@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
@@ -25,8 +26,9 @@ import {
   WalletIcon,
   GridIcon,
   LockIcon,
-  SolFloLabLogo,
 } from '../components/Icons';
+
+const LogoHeader = require('../../assets/logo-header.png');
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -149,13 +151,7 @@ export function DashboardScreen({ navigation }: Props) {
           <GridIcon size={24} color={COLORS.white} />
         </TouchableOpacity>
         
-        <View style={styles.logoContainer}>
-          <SolFloLabLogo size={36} />
-          <Text style={styles.logoText}>
-            <Text style={styles.logoSol}>Sol</Text>
-            <Text style={styles.logoFlo}>Flo</Text>
-          </Text>
-        </View>
+        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
         
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerButton}>
@@ -228,20 +224,9 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  logoSol: {
-    color: COLORS.textSecondary,
-  },
-  logoFlo: {
-    color: COLORS.text,
+  headerLogo: {
+    height: 36,
+    width: 110,
   },
   list: {
     padding: 16,

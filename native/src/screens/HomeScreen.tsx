@@ -8,10 +8,12 @@ import {
   StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const LogoHeader = require('../../assets/logo-header.png');
 import { useWallet } from '../contexts/WalletContext';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { WalletIcon, LinkIcon, LockIcon, SolFloLabLogo } from '../components/Icons';
+import { WalletIcon, LinkIcon, LockIcon } from '../components/Icons';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -44,13 +46,7 @@ export function HomeScreen({ navigation }: Props) {
       
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <SolFloLabLogo size={36} />
-          <Text style={styles.logoText}>
-            <Text style={styles.logoSol}>Sol</Text>
-            <Text style={styles.logoFlo}>Flo</Text>
-          </Text>
-        </View>
+        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
       </View>
 
       {/* Hero */}
@@ -130,20 +126,9 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 60,
     paddingBottom: 20,
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  logoSol: {
-    color: COLORS.textSecondary,
-  },
-  logoFlo: {
-    color: COLORS.text,
+  headerLogo: {
+    height: 40,
+    width: 120,
   },
   hero: {
     flex: 1,
