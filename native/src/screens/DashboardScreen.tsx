@@ -148,12 +148,14 @@ export function DashboardScreen({ navigation }: Props) {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.headerButton}
-          onPress={() => Linking.openURL('camera://')}
-        >
-          <CameraIcon size={24} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => Linking.openURL('camera://')}
+          >
+            <CameraIcon size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
         
         <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
         
@@ -216,11 +218,17 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     paddingBottom: 16,
+    position: 'relative',
+  },
+  headerLeft: {
+    position: 'absolute',
+    left: 16,
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
   },
   headerButton: {
     width: 44,
@@ -229,11 +237,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerRight: {
+    position: 'absolute',
+    right: 16,
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     flexDirection: 'row',
   },
   headerLogo: {
-    height: 44,
-    width: 140,
+    height: 55,
+    width: 170,
   },
   list: {
     padding: 16,
