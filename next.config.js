@@ -2,11 +2,6 @@ const webpack = require('webpack');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true,
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Provide empty fallbacks for Node.js built-in modules
