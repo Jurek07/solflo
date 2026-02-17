@@ -4,20 +4,21 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   Platform,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { WalletIcon, LinkIcon, LockIcon } from '../components/Icons';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export function HomeScreen({ navigation }: Props) {
-  const { connected, connecting, connect, publicKey } = useWallet();
+  const { connected, connecting, connect } = useWallet();
 
   const handleConnect = async () => {
     try {
@@ -35,38 +36,41 @@ export function HomeScreen({ navigation }: Props) {
   }, [connected, navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    <LinearGradient
+      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>
-          <Text style={styles.logoSol}>Sol</Text>
-          <Text style={styles.logoFlo}>Flo</Text>
-          <Text style={styles.logoLab}>Lab</Text>
-        </Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>
+            <Text style={styles.logoSol}>Sol</Text>
+            <Text style={styles.logoFlo}>Flo</Text>
+          </Text>
+        </View>
       </View>
 
       {/* Hero */}
       <View style={styles.hero}>
-        <Text style={styles.emoji}>💸</Text>
         <Text style={styles.title}>
-          Betalen met{'\n'}
-          <Text style={styles.highlight}>Solana</Text>
+          Payment links{'\n'}for <Text style={styles.highlight}>Solana</Text>
         </Text>
         
         <Text style={styles.subtitle}>
-          Maak betaallinks en ontvang SOL & USDC{'\n'}direct in je wallet. Geen fees! ✨
+          Accept SOL & USDC. No fees.{'\n'}Direct to your wallet.
         </Text>
 
         <TouchableOpacity
           style={[styles.button, connecting && styles.buttonDisabled]}
           onPress={handleConnect}
           disabled={connecting}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
+          <WalletIcon size={22} color={COLORS.white} />
           <Text style={styles.buttonText}>
-            {connecting ? 'Verbinden...' : '🔗 Verbind Wallet'}
+            {connecting ? 'Connecting...' : 'Connect Wallet'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -80,58 +84,66 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>&lt;1s</Text>
-          <Text style={styles.statLabel}>Snelheid</Text>
+          <Text style={styles.statLabel}>Settlement</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>$0.001</Text>
-          <Text style={styles.statLabel}>Netwerk</Text>
+          <Text style={styles.statLabel}>Network</Text>
         </View>
       </View>
 
       {/* Features */}
       <View style={styles.features}>
         <View style={styles.feature}>
-          <Text style={styles.featureIcon}>⚡</Text>
-          <Text style={styles.featureText}>Instant betaallinks</Text>
+          <View style={styles.featureIcon}>
+            <LinkIcon size={24} color={COLORS.primary} />
+          </View>
+          <Text style={styles.featureText}>Instant links</Text>
         </View>
         
         <View style={styles.feature}>
-          <Text style={styles.featureIcon}>🔒</Text>
-          <Text style={styles.featureText}>Direct naar je wallet</Text>
+          <View style={styles.featureIcon}>
+            <WalletIcon size={24} color={COLORS.primary} />
+          </View>
+          <Text style={styles.featureText}>Non-custodial</Text>
         </View>
         
         <View style={styles.feature}>
-          <Text style={styles.featureIcon}>🎯</Text>
-          <Text style={styles.featureText}>Eenmalig of herbruikbaar</Text>
+          <View style={styles.featureIcon}>
+            <LockIcon size={24} color={COLORS.primary} />
+          </View>
+          <Text style={styles.featureText}>ZK Privacy</Text>
         </View>
       </View>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
     alignItems: 'center',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 60,
+    paddingBottom: 20,
+  },
+  logoContainer: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   logo: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   logoSol: {
-    color: COLORS.text,
+    color: COLORS.white,
   },
   logoFlo: {
-    color: COLORS.primary,
-  },
-  logoLab: {
-    color: COLORS.text,
+    color: COLORS.backgroundDark,
   },
   hero: {
     flex: 1,
@@ -139,38 +151,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
   title: {
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: 16,
-    lineHeight: 44,
+    lineHeight: 48,
   },
   highlight: {
     color: COLORS.primary,
   },
   subtitle: {
-    fontSize: 17,
+    fontSize: 18,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
+    marginBottom: 40,
+    lineHeight: 26,
   },
   button: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 40,
+    paddingHorizontal: 36,
     paddingVertical: 18,
     borderRadius: 30,
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -179,20 +189,16 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 18,
     fontWeight: '700',
+    marginLeft: 10,
   },
   statsCard: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.card,
     marginHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 24,
     borderRadius: 20,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
   stat: {
     alignItems: 'center',
@@ -204,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: COLORS.primary,
   },
@@ -216,19 +222,24 @@ const styles = StyleSheet.create({
   features: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 24,
-    paddingBottom: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 16,
   },
   feature: {
     alignItems: 'center',
     flex: 1,
   },
   featureIcon: {
-    fontSize: 28,
-    marginBottom: 8,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   featureText: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textSecondary,
     textAlign: 'center',
   },

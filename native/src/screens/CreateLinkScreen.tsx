@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   TextInput,
   Switch,
   ScrollView,
@@ -14,10 +13,12 @@ import {
   StatusBar,
   KeyboardAvoidingView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { createPaymentLink } from '../lib/supabase';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ArrowLeftIcon, LinkIcon, LockIcon } from '../components/Icons';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -35,18 +36,18 @@ export function CreateLinkScreen({ navigation }: Props) {
 
   const handleCreate = async () => {
     if (!publicKey) {
-      Alert.alert('Oeps! 😅', 'Wallet niet verbonden');
+      Alert.alert('Error', 'Wallet not connected');
       return;
     }
 
     if (!title.trim()) {
-      Alert.alert('Oeps! 😅', 'Voer een titel in');
+      Alert.alert('Error', 'Please enter a title');
       return;
     }
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      Alert.alert('Oeps! 😅', 'Voer een geldig bedrag in');
+      Alert.alert('Error', 'Please enter a valid amount');
       return;
     }
 
@@ -63,20 +64,23 @@ export function CreateLinkScreen({ navigation }: Props) {
         private_payment: privatePayment,
       });
 
-      Alert.alert('Gelukt! 🎉', 'Je betaallink is aangemaakt!', [
-        { text: 'Top!', onPress: () => navigation.goBack() },
+      Alert.alert('Success!', 'Payment link created!', [
+        { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
       console.error('Failed to create link:', error);
-      Alert.alert('Oeps! 😢', 'Kon de link niet aanmaken');
+      Alert.alert('Error', 'Failed to create payment link');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    <LinearGradient
+      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -94,9 +98,9 @@ export function CreateLinkScreen({ navigation }: Props) {
               style={styles.backButton}
               activeOpacity={0.7}
             >
-              <Text style={styles.backIcon}>←</Text>
+              <ArrowLeftIcon size={24} color={COLORS.white} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Nieuwe betaallink 💸</Text>
+            <Text style={styles.headerTitle}>New Payment Link</Text>
             <View style={styles.headerSpacer} />
           </View>
 
@@ -104,11 +108,11 @@ export function CreateLinkScreen({ navigation }: Props) {
           <View style={styles.card}>
             {/* Title */}
             <View style={styles.field}>
-              <Text style={styles.label}>Waar is het voor? ✏️</Text>
+              <Text style={styles.label}>Title</Text>
               <TextInput
                 style={styles.input}
-                placeholder="bijv. Etentje, Cadeautje..."
-                placeholderTextColor={COLORS.textSecondary}
+                placeholder="e.g., Dinner, Invoice #123"
+                placeholderTextColor={COLORS.textMuted}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -116,12 +120,12 @@ export function CreateLinkScreen({ navigation }: Props) {
 
             {/* Amount */}
             <View style={styles.field}>
-              <Text style={styles.label}>Bedrag 💰</Text>
+              <Text style={styles.label}>Amount</Text>
               <View style={styles.amountRow}>
                 <TextInput
                   style={[styles.input, styles.amountInput]}
                   placeholder="0.00"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor={COLORS.textMuted}
                   value={amount}
                   onChangeText={setAmount}
                   keyboardType="decimal-pad"
@@ -167,11 +171,11 @@ export function CreateLinkScreen({ navigation }: Props) {
 
             {/* Description */}
             <View style={styles.field}>
-              <Text style={styles.label}>Extra info (optioneel) 📝</Text>
+              <Text style={styles.label}>Description (optional)</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Voeg een beschrijving toe..."
-                placeholderTextColor={COLORS.textSecondary}
+                placeholder="Add a note for the payer..."
+                placeholderTextColor={COLORS.textMuted}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -182,36 +186,42 @@ export function CreateLinkScreen({ navigation }: Props) {
 
           {/* Options Card */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Opties ⚙️</Text>
+            <Text style={styles.sectionTitle}>Options</Text>
 
             <View style={styles.option}>
+              <View style={styles.optionIcon}>
+                <LinkIcon size={22} color={COLORS.primary} />
+              </View>
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>Eenmalige link 🎯</Text>
+                <Text style={styles.optionLabel}>Single-use link</Text>
                 <Text style={styles.optionDesc}>
-                  Verloopt na één betaling
+                  Expires after one payment
                 </Text>
               </View>
               <Switch
                 value={singleUse}
                 onValueChange={setSingleUse}
-                trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
-                thumbColor={singleUse ? COLORS.primary : COLORS.white}
+                trackColor={{ false: COLORS.border, true: COLORS.primary + '60' }}
+                thumbColor={singleUse ? COLORS.primary : COLORS.textSecondary}
                 ios_backgroundColor={COLORS.border}
               />
             </View>
 
             <View style={[styles.option, styles.optionLast]}>
+              <View style={styles.optionIcon}>
+                <LockIcon size={22} color={COLORS.primary} />
+              </View>
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>Privé betaling 🔒</Text>
+                <Text style={styles.optionLabel}>Private Payment</Text>
                 <Text style={styles.optionDesc}>
-                  Verberg verzender & ontvanger
+                  Hide sender & receiver (ZK)
                 </Text>
               </View>
               <Switch
                 value={privatePayment}
                 onValueChange={setPrivatePayment}
-                trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
-                thumbColor={privatePayment ? COLORS.primary : COLORS.white}
+                trackColor={{ false: COLORS.border, true: COLORS.primary + '60' }}
+                thumbColor={privatePayment ? COLORS.primary : COLORS.textSecondary}
                 ios_backgroundColor={COLORS.border}
               />
             </View>
@@ -219,7 +229,7 @@ export function CreateLinkScreen({ navigation }: Props) {
             {privatePayment && (
               <View style={styles.privacyNote}>
                 <Text style={styles.privacyNoteText}>
-                  💡 Privacy fee: 0.008 SOL + 0.35% (betaald door verzender)
+                  Privacy fee: 0.008 SOL + 0.35% (paid by sender)
                 </Text>
               </View>
             )}
@@ -230,24 +240,23 @@ export function CreateLinkScreen({ navigation }: Props) {
             style={[styles.createButton, loading && styles.createButtonDisabled]}
             onPress={handleCreate}
             disabled={loading}
-            activeOpacity={0.8}
+            activeOpacity={0.9}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.createButtonText}>Maak betaallink aan ✨</Text>
+              <Text style={styles.createButtonText}>Create Link</Text>
             )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   flex: {
     flex: 1,
@@ -259,25 +268,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
+    paddingBottom: 16,
   },
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  backIcon: {
-    fontSize: 24,
-    color: COLORS.text,
+    alignItems: 'flex-start',
   },
   headerTitle: {
     flex: 1,
@@ -290,16 +289,11 @@ const styles = StyleSheet.create({
     width: 44,
   },
   card: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    backgroundColor: COLORS.card,
+    marginHorizontal: 16,
+    marginBottom: 16,
     padding: 20,
     borderRadius: 20,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
   field: {
     marginBottom: 20,
@@ -311,7 +305,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.cardLight,
     borderRadius: 14,
     padding: 16,
     color: COLORS.text,
@@ -332,7 +326,7 @@ const styles = StyleSheet.create({
   },
   currencyPicker: {
     flexDirection: 'row',
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.cardLight,
     borderRadius: 14,
     padding: 4,
   },
@@ -360,18 +354,26 @@ const styles = StyleSheet.create({
   },
   option: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   optionLast: {
     borderBottomWidth: 0,
   },
+  optionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.cardLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
   optionInfo: {
     flex: 1,
-    marginRight: 16,
+    marginRight: 12,
   },
   optionLabel: {
     color: COLORS.text,
@@ -381,10 +383,10 @@ const styles = StyleSheet.create({
   optionDesc: {
     color: COLORS.textSecondary,
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
   },
   privacyNote: {
-    backgroundColor: COLORS.primary + '10',
+    backgroundColor: COLORS.primary + '15',
     borderRadius: 12,
     padding: 14,
     marginTop: 12,
@@ -396,13 +398,13 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: COLORS.primary,
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 30,
     alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
   },

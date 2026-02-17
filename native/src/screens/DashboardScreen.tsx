@@ -4,19 +4,28 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   RefreshControl,
   Alert,
-  Share,
   Platform,
   StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
-import { getPaymentLinks, deletePaymentLink } from '../lib/supabase';
+import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { 
+  LinkIcon, 
+  PlusIcon, 
+  CheckIcon, 
+  ClockIcon, 
+  SearchIcon, 
+  UserIcon,
+  GridIcon,
+  LockIcon,
+} from '../components/Icons';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -51,49 +60,14 @@ export function DashboardScreen({ navigation }: Props) {
     fetchLinks();
   };
 
-  const handleShare = async (link: PaymentLink) => {
-    const url = `https://solflolab.com/pay/${link.id}`;
-    try {
-      await Share.share({
-        message: `💸 Betaal ${link.amount} ${link.currency} - ${link.title}\n${url}`,
-        url,
-      });
-    } catch (error) {
-      console.error('Share failed:', error);
-    }
-  };
-
-  const handleDelete = (link: PaymentLink) => {
-    Alert.alert(
-      'Link verwijderen? 🗑️',
-      `Weet je zeker dat je "${link.title}" wilt verwijderen?`,
-      [
-        { text: 'Annuleren', style: 'cancel' },
-        {
-          text: 'Verwijderen',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePaymentLink(link.id);
-              setLinks(links.filter(l => l.id !== link.id));
-            } catch (error) {
-              console.error('Delete failed:', error);
-              Alert.alert('Oeps!', 'Kon de link niet verwijderen');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleDisconnect = () => {
     Alert.alert(
-      'Uitloggen? 👋',
-      'Weet je zeker dat je wilt uitloggen?',
+      'Disconnect?',
+      'Are you sure you want to disconnect your wallet?',
       [
-        { text: 'Annuleren', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Uitloggen',
+          text: 'Disconnect',
           style: 'destructive',
           onPress: () => {
             disconnect();
@@ -104,90 +78,92 @@ export function DashboardScreen({ navigation }: Props) {
     );
   };
 
-  const renderLink = ({ item }: { item: PaymentLink }) => (
-    <View style={styles.linkCard}>
-      <View style={styles.linkHeader}>
-        <View style={styles.linkTitleRow}>
-          <Text style={styles.linkEmoji}>{item.private_payment ? '🔒' : '💳'}</Text>
-          <Text style={styles.linkTitle} numberOfLines={1}>{item.title}</Text>
-        </View>
-        <View style={[styles.badge, item.used && styles.badgeUsed]}>
-          <Text style={[styles.badgeText, item.used && styles.badgeTextUsed]}>
-            {item.used ? 'Betaald ✓' : 'Actief'}
-          </Text>
-        </View>
-      </View>
-      
-      <Text style={styles.linkAmount}>
-        {item.amount} <Text style={styles.linkCurrency}>{item.currency}</Text>
-      </Text>
-      
-      {item.description && (
-        <Text style={styles.linkDescription} numberOfLines={2}>{item.description}</Text>
-      )}
-      
-      <View style={styles.linkFooter}>
-        <View style={styles.linkTags}>
-          {item.single_use && (
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>Eenmalig</Text>
-            </View>
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+    return `${day} ${month}`;
+  };
+
+  const renderLink = ({ item }: { item: PaymentLink }) => {
+    // Count payments (we'll need to fetch this - for now show based on 'used' flag)
+    const paymentCount = item.used ? 1 : 0;
+    const isExpired = item.used && item.single_use;
+
+    return (
+      <TouchableOpacity 
+        style={styles.linkCard}
+        onPress={() => navigation.navigate('LinkDetail', { linkId: item.id })}
+        activeOpacity={0.8}
+      >
+        <View style={styles.linkIcon}>
+          {item.private_payment ? (
+            <LockIcon size={28} color={COLORS.textSecondary} />
+          ) : (
+            <LinkIcon size={28} color={COLORS.textSecondary} />
           )}
         </View>
         
-        <View style={styles.linkActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleDelete(item)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.actionIcon}>🗑️</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.shareButton}
-            onPress={() => handleShare(item)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.shareButtonText}>Delen</Text>
-          </TouchableOpacity>
+        <View style={styles.linkContent}>
+          <View style={styles.linkTop}>
+            <Text style={styles.linkTitle} numberOfLines={1}>{item.title}</Text>
+            <Text style={styles.linkDate}>{formatDate(item.created_at)}</Text>
+          </View>
+          
+          <View style={styles.linkBottom}>
+            <View style={styles.statusBadge}>
+              {paymentCount > 0 ? (
+                <CheckIcon size={18} color={COLORS.primary} />
+              ) : (
+                <ClockIcon size={18} color={COLORS.textSecondary} />
+              )}
+              <Text style={[styles.statusText, paymentCount > 0 && styles.statusTextPaid]}>
+                {paymentCount > 0 
+                  ? `Paid ${paymentCount}x${isExpired ? ' - expired' : ''}`
+                  : 'Pending'
+                }
+              </Text>
+            </View>
+            <Text style={styles.linkAmount}>
+              {item.amount} {item.currency}
+            </Text>
+          </View>
         </View>
-      </View>
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const walletAddress = publicKey?.toBase58() || '';
-  const shortAddress = `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    <LinearGradient
+      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
       
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hoi! 👋</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <GridIcon size={24} color={COLORS.white} />
+        </TouchableOpacity>
+        
+        <View style={styles.logoContainer}>
           <Text style={styles.logo}>
             <Text style={styles.logoSol}>Sol</Text>
             <Text style={styles.logoFlo}>Flo</Text>
-            <Text style={styles.logoLab}>Lab</Text>
           </Text>
         </View>
         
-        <TouchableOpacity style={styles.walletButton} onPress={handleDisconnect} activeOpacity={0.7}>
-          <Text style={styles.walletText}>{shortAddress}</Text>
-          <Text style={styles.walletIcon}>👛</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerButton}>
+            <SearchIcon size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={handleDisconnect}>
+            <UserIcon size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Create Button */}
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => navigation.navigate('CreateLink')}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.createButtonIcon}>➕</Text>
-        <Text style={styles.createButtonText}>Nieuwe betaallink</Text>
-      </TouchableOpacity>
 
       {/* Links List */}
       <FlatList
@@ -206,233 +182,161 @@ export function DashboardScreen({ navigation }: Props) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📭</Text>
+            <LinkIcon size={64} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>
-              {loading ? 'Laden...' : 'Nog geen betaallinks'}
+              {loading ? 'Loading...' : 'No payment links yet'}
             </Text>
             <Text style={styles.emptySubtext}>
-              Maak je eerste link en deel 'm!
+              Create your first link and share it!
             </Text>
           </View>
         }
       />
-    </SafeAreaView>
+
+      {/* FAB */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreateLink')}
+        activeOpacity={0.9}
+      >
+        <PlusIcon size={28} color={COLORS.white} />
+      </TouchableOpacity>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
+    paddingBottom: 16,
   },
-  greeting: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
+  headerButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+  },
+  logoContainer: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   logo: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   logoSol: {
-    color: COLORS.text,
+    color: COLORS.white,
   },
   logoFlo: {
-    color: COLORS.primary,
-  },
-  logoLab: {
-    color: COLORS.text,
-  },
-  walletButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  walletText: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  walletIcon: {
-    fontSize: 16,
-  },
-  createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  createButtonIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  createButtonText: {
-    color: COLORS.white,
-    fontSize: 17,
-    fontWeight: '700',
+    color: COLORS.backgroundDark,
   },
   list: {
-    padding: 20,
-    paddingTop: 0,
+    padding: 16,
+    paddingBottom: 100,
   },
   linkCard: {
-    backgroundColor: COLORS.white,
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 16,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    flexDirection: 'row',
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
   },
-  linkHeader: {
+  linkIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.cardLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  linkContent: {
+    flex: 1,
+  },
+  linkTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  linkTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  linkTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
     flex: 1,
     marginRight: 12,
   },
-  linkEmoji: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-  linkTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: COLORS.text,
-    flex: 1,
-  },
-  badge: {
-    backgroundColor: COLORS.primary + '15',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  badgeUsed: {
-    backgroundColor: COLORS.textSecondary + '15',
-  },
-  badgeText: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  badgeTextUsed: {
-    color: COLORS.textSecondary,
-  },
-  linkAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  linkCurrency: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  linkDescription: {
+  linkDate: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginBottom: 16,
-    lineHeight: 20,
   },
-  linkFooter: {
+  linkBottom: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingTop: 16,
   },
-  linkTags: {
+  statusBadge: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    backgroundColor: COLORS.backgroundDark,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
   },
-  tag: {
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  tagText: {
+  statusText: {
+    fontSize: 13,
     color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '500',
+    marginLeft: 6,
   },
-  linkActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  statusTextPaid: {
+    color: COLORS.text,
   },
-  actionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionIcon: {
-    fontSize: 18,
-  },
-  shareButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  shareButtonText: {
-    color: COLORS.white,
-    fontSize: 15,
-    fontWeight: '600',
+  linkAmount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
   },
   empty: {
     alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+    paddingVertical: 80,
   },
   emptyText: {
     fontSize: 20,
     fontWeight: '600',
     color: COLORS.text,
+    marginTop: 20,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 15,
     color: COLORS.textSecondary,
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

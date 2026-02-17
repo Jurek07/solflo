@@ -1,18 +1,34 @@
 import { PublicKey } from '@solana/web3.js';
 
-// Tikkie-inspired light theme
+// SolFloLab Tikkie-style dark theme
 export const COLORS = {
-  primary: '#00C853',        // Tikkie green
-  primaryDark: '#00A344',    // Darker green for pressed states
-  background: '#F5F5F5',     // Light gray background
-  white: '#FFFFFF',          // Pure white for cards
-  card: '#FFFFFF',           // White cards
-  border: '#E8E8E8',         // Subtle borders
-  text: '#1A1A1A',           // Dark text
-  textSecondary: '#757575',  // Gray secondary text
-  error: '#FF5252',          // Friendly red
-  success: '#00C853',        // Green for success
-  shadow: '#000000',         // For shadows
+  // Main colors
+  primary: '#00D26A',           // SolFloLab green
+  primaryDark: '#00B55A',       // Darker green for pressed
+  
+  // Background gradient
+  backgroundDark: '#1A1040',    // Dark purple
+  backgroundLight: '#2D1B69',   // Lighter purple
+  
+  // Card colors
+  card: '#3D2A7A',              // Purple cards
+  cardLight: '#4A3590',         // Lighter card variant
+  
+  // Text
+  text: '#FFFFFF',              // White text
+  textSecondary: '#A8A0C0',     // Light purple/gray
+  textMuted: '#6B6190',         // Muted text
+  
+  // Status
+  success: '#00D26A',           // Green
+  error: '#FF5252',             // Red
+  warning: '#FFB74D',           // Orange
+  
+  // Other
+  white: '#FFFFFF',
+  black: '#000000',
+  border: '#4A3590',
+  overlay: 'rgba(26, 16, 64, 0.9)',
 };
 
 export const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');

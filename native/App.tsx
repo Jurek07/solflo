@@ -9,6 +9,8 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateLinkScreen } from './src/screens/CreateLinkScreen';
 import { PayScreen } from './src/screens/PayScreen';
+import { LinkDetailScreen } from './src/screens/LinkDetailScreen';
+import { COLORS } from './src/lib/constants';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,10 +18,10 @@ const theme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#0A0A0A',
-    card: '#141414',
-    border: '#1A1A1A',
-    primary: '#00D26A',
+    background: COLORS.backgroundDark,
+    card: COLORS.card,
+    border: COLORS.border,
+    primary: COLORS.primary,
   },
 };
 
@@ -36,6 +38,7 @@ const linking = {
       Dashboard: 'dashboard',
       CreateLink: 'create',
       Pay: 'pay/:linkId',
+      LinkDetail: 'link/:linkId',
     },
   },
 };
@@ -66,6 +69,13 @@ export default function App() {
             component={PayScreen}
             options={{
               animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="LinkDetail"
+            component={LinkDetailScreen}
+            options={{
+              animation: 'slide_from_right',
             }}
           />
         </Stack.Navigator>
