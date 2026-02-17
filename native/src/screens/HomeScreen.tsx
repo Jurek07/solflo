@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { COLORS } from '../lib/constants';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { WalletIcon, LinkIcon, LockIcon } from '../components/Icons';
+import { WalletIcon, LinkIcon, LockIcon, SolFloLabLogo } from '../components/Icons';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -45,7 +45,8 @@ export function HomeScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Text style={styles.logo}>
+          <SolFloLabLogo size={36} />
+          <Text style={styles.logoText}>
             <Text style={styles.logoSol}>Sol</Text>
             <Text style={styles.logoFlo}>Flo</Text>
           </Text>
@@ -130,20 +131,19 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   logoContainer: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  logo: {
+  logoText: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
   logoSol: {
-    color: COLORS.white,
+    color: COLORS.textSecondary,
   },
   logoFlo: {
-    color: COLORS.backgroundDark,
+    color: COLORS.text,
   },
   hero: {
     flex: 1,
