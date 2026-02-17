@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   headerLogo: {
-    height: 36,
-    width: 110,
+    height: 50,
+    width: 150,
   },
   list: {
     padding: 16,

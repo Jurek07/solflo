@@ -128,8 +128,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   headerLogo: {
-    height: 40,
-    width: 120,
+    height: 50,
+    width: 150,
   },
   hero: {
     flex: 1,
