@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { COLORS } from '../lib/constants';
@@ -121,6 +122,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
   },
   logo: {
     fontSize: 24,

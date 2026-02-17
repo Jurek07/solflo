@@ -9,6 +9,8 @@ import {
   RefreshControl,
   Alert,
   Share,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
@@ -188,6 +190,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
   },
   logo: {
     fontSize: 24,

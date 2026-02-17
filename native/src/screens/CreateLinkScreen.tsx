@@ -10,6 +10,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { createPaymentLink } from '../lib/supabase';
@@ -237,6 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
   },
   backButton: {
     color: COLORS.primary,

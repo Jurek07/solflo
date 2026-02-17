@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLink, markLinkAsUsed, recordPayment } from '../lib/supabase';
@@ -290,6 +292,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 16 : 20,
     alignItems: 'center',
   },
   logo: {
