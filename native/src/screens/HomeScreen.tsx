@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 

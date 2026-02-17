@@ -10,9 +10,9 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { getPaymentLink, getPaymentsForLink, deletePaymentLink } from '../lib/supabase';
 import { PaymentLink, Payment } from '../types';

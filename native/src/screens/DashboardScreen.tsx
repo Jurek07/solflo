@@ -9,9 +9,9 @@ import {
   Alert,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'react-native';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
