@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PaymentLink, Payment } from '../types';
 
 const SUPABASE_URL = 'https://oraqsjmlbyhouaontlab.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_-Ipr68cU6IX9vJs71lNNBA_h20L_dhR';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yYXFzam1sYnlob3Vhb250bGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5NzQ2ODcsImV4cCI6MjA4NjU1MDY4N30.2f0hgV7yksSO2MA0nZFyWuUDR4G_36y9jCTiYNvc9hY';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
