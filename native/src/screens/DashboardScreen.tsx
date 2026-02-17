@@ -148,6 +148,8 @@ export function DashboardScreen({ navigation }: Props) {
       
       {/* Header */}
       <View style={styles.header}>
+        <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+        
         <View style={styles.headerLeft}>
           <TouchableOpacity 
             style={styles.headerButton}
@@ -155,10 +157,6 @@ export function DashboardScreen({ navigation }: Props) {
           >
             <CameraIcon size={24} color={COLORS.white} />
           </TouchableOpacity>
-        </View>
-        
-        <View style={styles.headerCenter}>
-          <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
         </View>
         
         <View style={styles.headerRight}>
@@ -219,16 +217,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'center',
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     paddingBottom: 16,
+    height: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 80 : 120,
   },
   headerLeft: {
-    width: 88,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    position: 'absolute',
+    left: 16,
+    bottom: 16,
   },
   headerButton: {
     width: 44,
@@ -236,18 +234,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
   headerRight: {
-    width: 88,
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
   },
   headerLogo: {
-    height: 55,
-    width: 170,
+    height: 40,
+    width: 160,
   },
   list: {
     padding: 16,

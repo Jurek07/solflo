@@ -124,12 +124,13 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 60,
-    paddingBottom: 20,
+    justifyContent: 'center',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
+    paddingBottom: 16,
   },
   headerLogo: {
-    height: 50,
-    width: 150,
+    height: 40,
+    width: 160,
   },
   hero: {
     flex: 1,
