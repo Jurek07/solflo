@@ -6,6 +6,16 @@ import {
 } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
 import { APP_NAME, APP_CLUSTER } from '../lib/constants';
 
+// Helper to convert base64 to Uint8Array
+function base64ToBytes(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
 interface WalletContextType {
   publicKey: PublicKey | null;
   connected: boolean;
@@ -39,7 +49,25 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         return authorizationResult;
       });
 
-      const pubkey = new PublicKey(authResult.accounts[0].address);
+      // The address may come as base64 bytes or base58 string
+      const addressData = authResult.accounts[0].address;
+      let pubkey: PublicKey;
+      
+      if (typeof addressData === 'string' && addressData.length === 44) {
+        // Likely base64 encoded (44 chars = 32 bytes in base64)
+        try {
+          const bytes = base64ToBytes(addressData);
+          pubkey = new PublicKey(bytes);
+        } catch {
+          // Fallback to treating as base58
+          pubkey = new PublicKey(addressData);
+        }
+      } else if (addressData instanceof Uint8Array) {
+        pubkey = new PublicKey(addressData);
+      } else {
+        // Assume base58 string
+        pubkey = new PublicKey(addressData);
+      }
       setPublicKey(pubkey);
       setConnecting(false);
       
