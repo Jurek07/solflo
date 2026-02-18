@@ -121,6 +121,26 @@ const nextConfig = {
       asyncWebAssembly: true,
     };
 
+    // Force @solana/web3.js into a single chunk to prevent multiple PublicKey classes
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization?.splitChunks,
+          cacheGroups: {
+            ...config.optimization?.splitChunks?.cacheGroups,
+            solanaWeb3: {
+              test: /[\\/]node_modules[\\/]@solana[\\/]web3\.js[\\/]/,
+              name: 'solana-web3',
+              chunks: 'all',
+              priority: 20,
+              enforce: true,
+            },
+          },
+        },
+      };
+    }
+
     return config;
   },
   transpilePackages: ['privacycash', '@lightprotocol/hasher.rs', '@solana/web3.js', '@coral-xyz/anchor'],
