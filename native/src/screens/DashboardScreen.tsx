@@ -155,7 +155,11 @@ export function DashboardScreen({ navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLogoContainer}>
-          <Image source={LogoHeader} style={styles.headerLogo} resizeMode="contain" />
+          <Image source={require('../../assets/logo-icon.png')} style={styles.headerLogoIcon} resizeMode="contain" />
+          <Text style={styles.headerLogoText}>
+            <Text style={styles.headerLogoSol}>Sol</Text>
+            <Text style={styles.headerLogoFlo}>FloLab</Text>
+          </Text>
         </View>
         
         <View style={styles.headerLeft}>
@@ -232,9 +236,11 @@ const styles = StyleSheet.create({
   headerLogoContainer: {
     position: 'absolute',
     bottom: 12,
-    left: (SCREEN_WIDTH - 160) / 2,
-    width: 160,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerLeft: {
     position: 'absolute',
@@ -253,9 +259,21 @@ const styles = StyleSheet.create({
     bottom: 12,
     flexDirection: 'row',
   },
-  headerLogo: {
-    height: 40,
-    width: 160,
+  headerLogoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  headerLogoText: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  headerLogoSol: {
+    color: COLORS.textSecondary,
+  },
+  headerLogoFlo: {
+    color: COLORS.text,
   },
   list: {
     padding: 16,
