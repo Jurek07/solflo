@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   headerLogoSol: {
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   headerLogoFlo: {
     color: COLORS.primary,
