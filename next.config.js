@@ -27,9 +27,11 @@ const nextConfig = {
       };
 
       // Replace node-localstorage with browser localStorage
+      // Force single copy of @solana/web3.js to ensure polyfill works everywhere
       config.resolve.alias = {
         ...config.resolve.alias,
         'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
+        '@solana/web3.js': require.resolve('@solana/web3.js'),
       };
 
       // Add plugin to provide Buffer and process globally
