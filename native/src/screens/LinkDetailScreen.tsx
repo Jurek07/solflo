@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { getPaymentLink, getPaymentsForLink, deletePaymentLink } from '../lib/supabase';
 import { PaymentLink, Payment } from '../types';
@@ -106,29 +105,25 @@ export function LinkDetailScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-        style={styles.container}
+      <View style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   if (!link) {
     return (
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-        style={styles.container}
+      <View style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>Payment link not found</Text>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
@@ -136,11 +131,9 @@ export function LinkDetailScreen({ navigation, route }: Props) {
   const isExpired = link.used && link.single_use;
 
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       <ScrollView 
         style={styles.scrollView}
@@ -239,7 +232,7 @@ export function LinkDetailScreen({ navigation, route }: Props) {
               value={payUrl}
               size={220}
               backgroundColor={COLORS.white}
-              color={COLORS.backgroundDark}
+              color={COLORS.background}
             />
             <Image source={LogoIcon} style={styles.qrLogo} resizeMode="contain" />
           </View>
@@ -277,7 +270,7 @@ export function LinkDetailScreen({ navigation, route }: Props) {
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -443,7 +436,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingTop: 16,
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.card,
   },
   shareButton: {
     backgroundColor: COLORS.primary,

@@ -9,7 +9,6 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
@@ -133,11 +132,9 @@ export function SearchScreen({ navigation }: Props) {
   };
 
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -209,7 +206,7 @@ export function SearchScreen({ navigation }: Props) {
           </View>
         }
       />
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -334,7 +331,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundDark,
+    backgroundColor: COLORS.background,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,

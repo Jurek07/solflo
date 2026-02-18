@@ -21,7 +21,7 @@ const theme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: COLORS.backgroundDark,
+    background: COLORS.background,
     card: COLORS.card,
     border: COLORS.border,
     primary: COLORS.primary,
@@ -55,7 +55,7 @@ export default function App() {
   });
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#1A1040' }} />;
+    return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
   }
 
   return (

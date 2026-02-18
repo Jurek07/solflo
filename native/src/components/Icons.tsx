@@ -252,7 +252,7 @@ export function SolFloLabLogo({ size = 60 }: { size?: number }) {
       {/* Top arc (concave/dome) */}
       <Path
         d="M16 24C16 24 23 18 30 18C37 18 44 24 44 24"
-        stroke={COLORS.backgroundDark}
+        stroke={COLORS.background}
         strokeWidth={4}
         strokeLinecap="round"
         fill="none"
@@ -260,7 +260,7 @@ export function SolFloLabLogo({ size = 60 }: { size?: number }) {
       {/* Middle arc (convex/smile) */}
       <Path
         d="M14 32C14 32 21 38 30 38C39 38 46 32 46 32"
-        stroke={COLORS.backgroundDark}
+        stroke={COLORS.background}
         strokeWidth={4}
         strokeLinecap="round"
         fill="none"
@@ -268,7 +268,7 @@ export function SolFloLabLogo({ size = 60 }: { size?: number }) {
       {/* Bottom arc (convex/smile, smaller) */}
       <Path
         d="M18 42C18 42 23 46 30 46C37 46 42 42 42 42"
-        stroke={COLORS.backgroundDark}
+        stroke={COLORS.background}
         strokeWidth={4}
         strokeLinecap="round"
         fill="none"

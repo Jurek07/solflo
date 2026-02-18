@@ -13,7 +13,6 @@ import {
   StatusBar,
   KeyboardAvoidingView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { createPaymentLink } from '../lib/supabase';
 import { COLORS } from '../lib/constants';
@@ -76,11 +75,9 @@ export function CreateLinkScreen({ navigation }: Props) {
   };
 
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -250,7 +247,7 @@ export function CreateLinkScreen({ navigation }: Props) {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 

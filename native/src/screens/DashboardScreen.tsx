@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLinks } from '../lib/supabase';
 import { PaymentLink } from '../types';
@@ -146,11 +145,9 @@ export function DashboardScreen({ navigation }: Props) {
   const walletAddress = publicKey?.toBase58() || '';
 
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -220,7 +217,7 @@ export function DashboardScreen({ navigation }: Props) {
       >
         <PlusIcon size={28} color={COLORS.white} />
       </TouchableOpacity>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -321,7 +318,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundDark,
+    backgroundColor: COLORS.background,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,

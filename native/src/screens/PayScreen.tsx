@@ -9,7 +9,6 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useWallet } from '../contexts/WalletContext';
 import { getPaymentLink, markLinkAsUsed, recordPayment } from '../lib/supabase';
 import { PaymentLink } from '../types';
@@ -108,27 +107,23 @@ export function PayScreen({ navigation, route }: Props) {
   // Loading state
   if (loading) {
     return (
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-        style={styles.container}
+      <View style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading payment...</Text>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-        style={styles.container}
+      <View style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
           <Text style={styles.errorIcon}>✕</Text>
           <Text style={styles.errorText}>{error}</Text>
@@ -140,18 +135,16 @@ export function PayScreen({ navigation, route }: Props) {
             <Text style={styles.secondaryButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   // Success state
   if (paid) {
     return (
-      <LinearGradient
-        colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-        style={styles.container}
+      <View style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.center}>
           <View style={styles.successIcon}>
             <CheckIcon size={60} color={COLORS.primary} />
@@ -168,17 +161,15 @@ export function PayScreen({ navigation, route }: Props) {
             <Text style={styles.primaryButtonText}>Done</Text>
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   // Payment form
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -275,7 +266,7 @@ export function PayScreen({ navigation, route }: Props) {
           Powered by SolFloLab • Non-custodial
         </Text>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -357,7 +348,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   logoFlo: {
-    color: COLORS.backgroundDark,
+    color: COLORS.background,
   },
   content: {
     flex: 1,

@@ -8,7 +8,6 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const LogoHeader = require('../../assets/logo-header.png');
 import { useWallet } from '../contexts/WalletContext';
@@ -39,11 +38,9 @@ export function HomeScreen({ navigation }: Props) {
   }, [connected, navigation]);
 
   return (
-    <LinearGradient
-      colors={[COLORS.backgroundDark, COLORS.backgroundLight]}
-      style={styles.container}
+    <View style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -118,7 +115,7 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.featureText}>ZK Privacy</Text>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
