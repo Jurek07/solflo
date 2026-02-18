@@ -1,8 +1,10 @@
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
+import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 
 import { WalletProvider } from './src/contexts/WalletContext';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -46,6 +48,16 @@ const linking = {
 };
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: '#1A1040' }} />;
+  }
+
   return (
     <WalletProvider>
       <NavigationContainer theme={theme} linking={linking}>

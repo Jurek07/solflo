@@ -47,10 +47,10 @@ export function HomeScreen({ navigation }: Props) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Image source={require('../../assets/logo-icon.png')} style={styles.headerLogoIcon} resizeMode="contain" />
         <Text style={styles.headerLogoText}>
           <Text style={styles.headerLogoSol}>Sol</Text>
-          <Text style={styles.headerLogoFlo}>FloLab</Text>
+          <Text style={styles.headerLogoFlo}>Flo</Text>
+          <Text style={styles.headerLogoLab}>Lab</Text>
         </Text>
       </View>
 
@@ -133,20 +133,18 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 16 : 60,
     paddingBottom: 16,
   },
-  headerLogoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    marginRight: 10,
-  },
   headerLogoText: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.5,
   },
   headerLogoSol: {
     color: COLORS.textSecondary,
   },
   headerLogoFlo: {
+    color: COLORS.primary,
+  },
+  headerLogoLab: {
     color: COLORS.text,
   },
   hero: {

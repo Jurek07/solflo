@@ -18,6 +18,8 @@
     "@supabase/supabase-js": "^2.95.3",
     "expo": "~54.0.33",
     "expo-crypto": "^15.0.8",
+    "@expo-google-fonts/inter": "^0.2.3",
+    "expo-font": "~13.0.4",
     "expo-linear-gradient": "~14.1.5",
     "expo-linking": "^7.0.10",
     "expo-status-bar": "~3.0.9",
