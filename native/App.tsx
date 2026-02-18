@@ -1,3 +1,4 @@
+import './src/lib/polyfills'; // must be first — polyfills Buffer for @solana/web3.js
 import React from 'react';
 import { View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
