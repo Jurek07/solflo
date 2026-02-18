@@ -180,15 +180,9 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Patch PublicKey from multiple sources to ensure all copies have toBuffer
+      // Patch PublicKey to ensure toBuffer exists
       const web3Main = await import('@solana/web3.js');
       patchPublicKey(web3Main.PublicKey);
-      
-      // Also try to patch from the ESM path that anchor/other libs might use
-      try {
-        const web3Esm: any = await import('@solana/web3.js/lib/index.esm.js');
-        patchPublicKey(web3Esm.PublicKey);
-      } catch (e) { /* ignore */ }
       
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
