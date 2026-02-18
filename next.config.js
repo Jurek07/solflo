@@ -143,7 +143,7 @@ const nextConfig = {
 
     return config;
   },
-  transpilePackages: ['privacycash', '@lightprotocol/hasher.rs', '@solana/web3.js', '@coral-xyz/anchor'],
+  transpilePackages: ['privacycash', '@lightprotocol/hasher.rs'],
 };
 
 module.exports = nextConfig;
