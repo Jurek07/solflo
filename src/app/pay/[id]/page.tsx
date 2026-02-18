@@ -231,6 +231,25 @@ export default function PayPage() {
 
       setStatus('confirming');
 
+      // Re-patch PublicKey.toBuffer before withdraw (different chunk may have different PublicKey)
+      const { PublicKey: PK2, } = await import('@solana/web3.js');
+      const { Buffer: Buf } = await import('buffer');
+      PK2.prototype.toBuffer = function(): typeof Buf {
+        const bn = (this as any)._bn;
+        if (bn) {
+          if (typeof bn.toArrayLike === 'function') {
+            return bn.toArrayLike(Buf, 'be', 32);
+          }
+          if (typeof bn.toArray === 'function') {
+            return Buf.from(bn.toArray('be', 32));
+          }
+        }
+        const bytes = (this as any)._key || (this as any).bytes;
+        if (bytes) return Buf.from(bytes);
+        throw new Error('Cannot convert PublicKey to Buffer');
+      };
+      console.log('Re-patched PublicKey.toBuffer before withdraw');
+
       // Step 2: Withdraw to merchant (anonymously)
       let withdrawResult;
       if (link.currency === 'SOL') {
