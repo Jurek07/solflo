@@ -158,9 +158,26 @@ export default function PayPage() {
     }
   };
 
-  // Helper to FORCE patch toBuffer on any PublicKey class (even if it exists)
+  // Helper to add toBuffer to any object that looks like a PublicKey
+  const addToBuffer = (obj: any) => {
+    if (obj && !obj.toBuffer) {
+      obj.toBuffer = function() {
+        const bn = (this as any)._bn;
+        if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+        if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+        const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
+        if (bytes) return Buffer.from(bytes);
+        throw new Error('Cannot convert to Buffer');
+      };
+    }
+  };
+
+  // Helper to FORCE patch toBuffer on any PublicKey class AND its static methods
   const patchPublicKey = (PK: any) => {
-    if (PK && PK.prototype) {
+    if (!PK) return;
+    
+    // Patch prototype
+    if (PK.prototype) {
       PK.prototype.toBuffer = function() {
         const bn = (this as any)._bn;
         if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
@@ -168,6 +185,15 @@ export default function PayPage() {
         const bytes = (this as any)._key || (this as any).bytes;
         if (bytes) return Buffer.from(bytes);
         throw new Error('Cannot convert PublicKey to Buffer');
+      };
+    }
+    
+    // ALSO patch findProgramAddressSync to add toBuffer to its programId parameter
+    const originalFindProgramAddressSync = PK.findProgramAddressSync;
+    if (originalFindProgramAddressSync) {
+      PK.findProgramAddressSync = function(seeds: any[], programId: any) {
+        addToBuffer(programId);
+        return originalFindProgramAddressSync.call(this, seeds, programId);
       };
     }
   };
@@ -180,13 +206,19 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Patch PublicKey to ensure toBuffer exists
+      // Patch PublicKey from our import
       const web3Main = await import('@solana/web3.js');
       patchPublicKey(web3Main.PublicKey);
+      console.log('[patch] Patched main PublicKey');
       
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
+      
+      // Try to patch PublicKey again after SDK import (in case it loaded a different one)
+      const web3After = await import('@solana/web3.js');
+      patchPublicKey(web3After.PublicKey);
+      console.log('[patch] Re-patched PublicKey after SDK import');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
