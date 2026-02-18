@@ -1,15 +1,13 @@
 import {
   Connection,
   PublicKey,
-  Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  VersionedTransaction,
+  TransactionMessage,
 } from '@solana/web3.js';
 import {
-  getAssociatedTokenAddress,
   createTransferInstruction,
-  createAssociatedTokenAccountInstruction,
-  getAccount,
 } from '@solana/spl-token';
 import { RPC_ENDPOINT, USDC_MINT } from './constants';
 
@@ -22,23 +20,16 @@ interface PaymentParams {
   currency: 'SOL' | 'USDC';
 }
 
-export async function buildPaymentTransaction(params: PaymentParams): Promise<Transaction> {
+export async function buildPaymentTransaction(params: PaymentParams): Promise<VersionedTransaction> {
   const { payerPublicKey, recipientAddress, amount, currency } = params;
   const recipientPublicKey = new PublicKey(recipientAddress);
 
-  const transaction = new Transaction();
-
-  // Get recent blockhash
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-  transaction.recentBlockhash = blockhash;
-  transaction.lastValidBlockHeight = lastValidBlockHeight;
-  transaction.feePayer = payerPublicKey;
+  const { blockhash } = await connection.getLatestBlockhash();
+  const instructions = [];
 
   if (currency === 'SOL') {
-    // SOL transfer
     const lamports = Math.round(amount * LAMPORTS_PER_SOL);
-
-    transaction.add(
+    instructions.push(
       SystemProgram.transfer({
         fromPubkey: payerPublicKey,
         toPubkey: recipientPublicKey,
@@ -46,48 +37,43 @@ export async function buildPaymentTransaction(params: PaymentParams): Promise<Tr
       })
     );
   } else {
-    // USDC transfer (SPL Token)
+    // USDC — look up token accounts via RPC to avoid toBuffer() / PDA derivation issues
     const usdcDecimals = 6;
     const tokenAmount = Math.round(amount * Math.pow(10, usdcDecimals));
 
-    // Get token accounts
-    const payerTokenAccount = await getAssociatedTokenAddress(
-      USDC_MINT,
-      payerPublicKey
-    );
+    const [payerAccounts, recipientAccounts] = await Promise.all([
+      connection.getTokenAccountsByOwner(payerPublicKey, { mint: USDC_MINT }),
+      connection.getTokenAccountsByOwner(recipientPublicKey, { mint: USDC_MINT }),
+    ]);
 
-    const recipientTokenAccount = await getAssociatedTokenAddress(
-      USDC_MINT,
-      recipientPublicKey
-    );
-
-    // Check if recipient has a token account
-    try {
-      await getAccount(connection, recipientTokenAccount);
-    } catch {
-      // Recipient doesn't have a token account, create one
-      transaction.add(
-        createAssociatedTokenAccountInstruction(
-          payerPublicKey, // payer
-          recipientTokenAccount, // associated token account
-          recipientPublicKey, // owner
-          USDC_MINT // mint
-        )
-      );
+    if (payerAccounts.value.length === 0) {
+      throw new Error('You have no USDC balance');
+    }
+    if (recipientAccounts.value.length === 0) {
+      throw new Error('Recipient has no USDC account');
     }
 
-    // Add transfer instruction
-    transaction.add(
+    const payerTokenAccount = payerAccounts.value[0].pubkey;
+    const recipientTokenAccount = recipientAccounts.value[0].pubkey;
+
+    instructions.push(
       createTransferInstruction(
         payerTokenAccount,
         recipientTokenAccount,
         payerPublicKey,
-        tokenAmount
+        tokenAmount,
       )
     );
   }
 
-  return transaction;
+  // VersionedTransaction serializes with Uint8Array — no toBuffer() calls at all
+  const message = new TransactionMessage({
+    payerKey: payerPublicKey,
+    recentBlockhash: blockhash,
+    instructions,
+  }).compileToV0Message();
+
+  return new VersionedTransaction(message);
 }
 
 export async function getSOLBalance(publicKey: PublicKey): Promise<number> {
@@ -97,9 +83,10 @@ export async function getSOLBalance(publicKey: PublicKey): Promise<number> {
 
 export async function getUSDCBalance(publicKey: PublicKey): Promise<number> {
   try {
-    const tokenAccount = await getAssociatedTokenAddress(USDC_MINT, publicKey);
-    const account = await getAccount(connection, tokenAccount);
-    return Number(account.amount) / Math.pow(10, 6);
+    const accounts = await connection.getTokenAccountsByOwner(publicKey, { mint: USDC_MINT });
+    if (accounts.value.length === 0) return 0;
+    const info = await connection.getTokenAccountBalance(accounts.value[0].pubkey);
+    return Number(info.value.amount) / Math.pow(10, 6);
   } catch {
     return 0;
   }

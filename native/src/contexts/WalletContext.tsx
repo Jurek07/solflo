@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import {
   transact,
   Web3MobileWallet,
@@ -22,7 +22,7 @@ interface WalletContextType {
   connecting: boolean;
   connect: () => Promise<PublicKey>;
   disconnect: () => void;
-  signAndSendTransaction: (transaction: Transaction) => Promise<string>;
+  signAndSendTransaction: (transaction: Transaction | VersionedTransaction) => Promise<string>;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -83,7 +83,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setPublicKey(null);
   }, []);
 
-  const signAndSendTransaction = useCallback(async (transaction: Transaction) => {
+  const signAndSendTransaction = useCallback(async (transaction: Transaction | VersionedTransaction) => {
     if (!publicKey) {
       throw new Error('Wallet not connected');
     }
