@@ -1,7 +1,7 @@
 'use client';
 
-// Must be imported first - patches PublicKey.toBuffer for Privacy Cash SDK
-import '@/lib/solana-polyfills';
+// Note: PublicKey.toBuffer is patched via webpack alias in next.config.js
+// All imports of @solana/web3.js are redirected to src/lib/web3-patched.ts
 
 import { FC, ReactNode, useMemo } from 'react';
 import {

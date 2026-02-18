@@ -27,11 +27,11 @@ const nextConfig = {
       };
 
       // Replace node-localstorage with browser localStorage
-      // Force single copy of @solana/web3.js to ensure polyfill works everywhere
+      // Redirect @solana/web3.js to our patched version that fixes toBuffer
       config.resolve.alias = {
         ...config.resolve.alias,
         'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
-        '@solana/web3.js': require.resolve('@solana/web3.js'),
+        '@solana/web3.js$': require.resolve('./src/lib/web3-patched.ts'),
       };
 
       // Add plugin to provide Buffer and process globally
