@@ -27,12 +27,26 @@ const nextConfig = {
       };
 
       // Replace node-localstorage with browser localStorage
-      // Redirect @solana/web3.js to our patched version that fixes toBuffer
       config.resolve.alias = {
         ...config.resolve.alias,
         'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
-        '@solana/web3.js$': require.resolve('./src/lib/web3-patched.ts'),
       };
+
+      // Intercept ALL @solana/web3.js imports and redirect to our patched version
+      // This catches imports from node_modules too
+      const patchedWeb3Path = require.resolve('./src/lib/web3-patched.ts');
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^@solana\/web3\.js$/,
+          (resource) => {
+            // Don't redirect our own patched module's internal import
+            if (resource.context && resource.context.includes('web3-patched')) {
+              return;
+            }
+            resource.request = patchedWeb3Path;
+          }
+        )
+      );
 
       // Add plugin to provide Buffer and process globally
       config.plugins.push(
