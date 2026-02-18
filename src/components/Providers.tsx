@@ -1,5 +1,8 @@
 'use client';
 
+// Must be imported first - patches PublicKey.toBuffer for Privacy Cash SDK
+import '@/lib/solana-polyfills';
+
 import { FC, ReactNode, useMemo } from 'react';
 import {
   ConnectionProvider,
