@@ -166,15 +166,16 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Polyfill PublicKey.toBuffer before importing Privacy Cash SDK
-      // The SDK calls toBuffer() which may not exist in newer @solana/web3.js versions
-      const { PublicKey: PK } = await import('@solana/web3.js');
+      // Ensure PublicKey.toBuffer polyfill is applied before importing Privacy Cash SDK
       const { Buffer } = await import('buffer');
-      if (!PK.prototype.toBuffer) {
-        PK.prototype.toBuffer = function(): Buffer {
-          return Buffer.from(this.toBytes());
-        };
-      }
+      const { PublicKey: PK } = await import('@solana/web3.js');
+      
+      // Force patch toBuffer - Privacy Cash SDK requires this method
+      PK.prototype.toBuffer = function(): Buffer {
+        return Buffer.from(this.toBytes());
+      };
+      
+      console.log('toBuffer polyfill applied:', typeof PK.prototype.toBuffer);
 
       // Dynamic import Privacy Cash SDK - exports are in privacycash/utils
       const utils: any = await import('privacycash/utils');
