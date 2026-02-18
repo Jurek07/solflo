@@ -158,6 +158,20 @@ export default function PayPage() {
     }
   };
 
+  // Helper to FORCE patch toBuffer on any PublicKey class (even if it exists)
+  const patchPublicKey = (PK: any) => {
+    if (PK && PK.prototype) {
+      PK.prototype.toBuffer = function() {
+        const bn = (this as any)._bn;
+        if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+        if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+        const bytes = (this as any)._key || (this as any).bytes;
+        if (bytes) return Buffer.from(bytes);
+        throw new Error('Cannot convert PublicKey to Buffer');
+      };
+    }
+  };
+
   const handlePrivatePayment = async () => {
     if (!publicKey || !signMessage || !signTransaction) {
       throw new Error('Wallet does not support signing');
@@ -166,8 +180,17 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Dynamic import Privacy Cash SDK - exports are in privacycash/utils
-      // Note: PublicKey.toBuffer polyfill is applied in src/lib/solana-polyfills.ts (loaded via Providers)
+      // Patch PublicKey from multiple sources to ensure all copies have toBuffer
+      const web3Main = await import('@solana/web3.js');
+      patchPublicKey(web3Main.PublicKey);
+      
+      // Also try to patch from the ESM path that anchor/other libs might use
+      try {
+        const web3Esm: any = await import('@solana/web3.js/lib/index.esm.js');
+        patchPublicKey(web3Esm.PublicKey);
+      } catch (e) { /* ignore */ }
+      
+      // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
@@ -230,6 +253,10 @@ export default function PayPage() {
       }
 
       setStatus('confirming');
+
+      // Re-patch before withdraw in case a different PublicKey class is used
+      patchPublicKey(web3Main.PublicKey);
+      console.log('[runtime] Re-patching before withdraw');
 
       // Step 2: Withdraw to merchant (anonymously)
       let withdrawResult;
