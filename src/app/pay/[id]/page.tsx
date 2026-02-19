@@ -167,11 +167,9 @@ export default function PayPage() {
 
     try {
       const { Buffer } = await import('buffer');
-      const { PublicKey: PK } = await import('@solana/web3.js');
       
-      // Dynamic import Privacy Cash SDK
-      const utils: any = await import('privacycash/utils');
-      const hasher: any = await import('@lightprotocol/hasher.rs');
+      // Import SDK's internal constants to patch them directly
+      const constants: any = await import('privacycash/dist/utils/constants.js');
       
       // Helper to add toBuffer to any PublicKey-like object
       const addToBuffer = (obj: any, label: string) => {
@@ -183,26 +181,29 @@ export default function PayPage() {
           if (this._bn?.toArrayLike) {
             return this._bn.toArrayLike(Buffer, 'be', 32);
           }
-          // Fallback: convert via string
-          return Buffer.from(new PK(this.toString()).toBytes());
+          throw new Error(`Cannot convert ${label} to buffer`);
         };
         console.log(`[pay] Patched ${label}.toBuffer`);
       };
 
-      // Patch all SDK constants that are PublicKeys
-      if (utils.PROGRAM_ID) addToBuffer(utils.PROGRAM_ID, 'PROGRAM_ID');
-      if (utils.FEE_RECIPIENT) addToBuffer(utils.FEE_RECIPIENT, 'FEE_RECIPIENT');
-      if (utils.ALT_ADDRESS) addToBuffer(utils.ALT_ADDRESS, 'ALT_ADDRESS');
-      if (utils.USDC_MINT) addToBuffer(utils.USDC_MINT, 'USDC_MINT');
+      // Patch all PublicKey constants in the SDK's internal constants
+      if (constants.PROGRAM_ID) addToBuffer(constants.PROGRAM_ID, 'PROGRAM_ID');
+      if (constants.FEE_RECIPIENT) addToBuffer(constants.FEE_RECIPIENT, 'FEE_RECIPIENT');
+      if (constants.ALT_ADDRESS) addToBuffer(constants.ALT_ADDRESS, 'ALT_ADDRESS');
+      if (constants.USDC_MINT) addToBuffer(constants.USDC_MINT, 'USDC_MINT');
 
-      // Patch the SDK's tokens array
-      if (utils.tokens && Array.isArray(utils.tokens)) {
-        for (const token of utils.tokens) {
+      // Patch the SDK's internal tokens array (same reference used by withdrawSPL)
+      if (constants.tokens && Array.isArray(constants.tokens)) {
+        for (const token of constants.tokens) {
           if (token.pubkey) {
             addToBuffer(token.pubkey, `tokens.${token.name}`);
           }
         }
       }
+
+      // Now import the SDK utils
+      const utils: any = await import('privacycash/utils');
+      const hasher: any = await import('@lightprotocol/hasher.rs');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
