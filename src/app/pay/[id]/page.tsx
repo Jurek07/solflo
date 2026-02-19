@@ -195,6 +195,23 @@ export default function PayPage() {
         (LocalPK.prototype as any)._patched = true;
         console.log('[pay] Patched local PublicKey.prototype.toBuffer');
       }
+
+      // Also try to patch any PublicKey from spl-token (might be yet another instance)
+      try {
+        const splToken = await import('@solana/spl-token');
+        // spl-token re-exports or uses PublicKey internally - try to find it
+        const anyPK = (splToken as any).PublicKey;
+        if (anyPK && !(anyPK.prototype as any)._patched) {
+          (anyPK.prototype as any).toBuffer = function(): Buffer {
+            const b = (this as any)._bn.toArrayLike(Buffer, 'be', 32);
+            return b;
+          };
+          (anyPK.prototype as any)._patched = true;
+          console.log('[pay] Patched spl-token PublicKey.prototype.toBuffer');
+        }
+      } catch (e) {
+        console.log('[pay] spl-token patch skipped:', e);
+      }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
