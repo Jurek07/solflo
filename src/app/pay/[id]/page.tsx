@@ -166,7 +166,18 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Dynamic import Privacy Cash SDK (webpack redirects @solana/web3.js to our patched version)
+      // Patch PublicKey.toBuffer before using Privacy Cash SDK
+      const { Buffer } = await import('buffer');
+      const { PublicKey: PK } = await import('@solana/web3.js');
+      if (!(PK.prototype as any).__patched) {
+        (PK.prototype as any).toBuffer = function() {
+          return Buffer.from(this.toBytes());
+        };
+        (PK.prototype as any).__patched = true;
+        console.log('[pay] PublicKey.toBuffer patched');
+      }
+
+      // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
