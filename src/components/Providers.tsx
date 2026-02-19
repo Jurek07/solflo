@@ -1,8 +1,5 @@
 'use client';
 
-// Patch PublicKey.toBuffer before anything else
-import '@/lib/patch-web3';
-
 import { FC, ReactNode, useMemo } from 'react';
 import {
   ConnectionProvider,
