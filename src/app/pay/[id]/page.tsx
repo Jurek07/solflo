@@ -158,60 +158,6 @@ export default function PayPage() {
     }
   };
 
-  // Helper to add toBuffer to any object that looks like a PublicKey
-  const addToBuffer = (obj: any) => {
-    if (obj && !obj.toBuffer) {
-      Object.defineProperty(obj, 'toBuffer', {
-        value: function() {
-          const bn = (this as any)._bn;
-          if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-          if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-          const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
-          if (bytes) return Buffer.from(bytes);
-          throw new Error('Cannot convert to Buffer');
-        },
-        writable: true,
-        configurable: true,
-        enumerable: false
-      });
-    }
-  };
-  
-  // Globally patch all PublicKey-like objects by intercepting property access
-  const patchGlobally = () => {
-    // Try to find and patch any PublicKey prototype we can access
-    if (typeof window !== 'undefined') {
-      const modules = (window as any).__NEXT_DATA__?.props?.pageProps || {};
-      // Look for any object with _bn property and add toBuffer
-    }
-  };
-
-  // Helper to FORCE patch toBuffer on any PublicKey class AND its static methods
-  const patchPublicKey = (PK: any) => {
-    if (!PK) return;
-    
-    // Patch prototype
-    if (PK.prototype) {
-      PK.prototype.toBuffer = function() {
-        const bn = (this as any)._bn;
-        if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-        if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-        const bytes = (this as any)._key || (this as any).bytes;
-        if (bytes) return Buffer.from(bytes);
-        throw new Error('Cannot convert PublicKey to Buffer');
-      };
-    }
-    
-    // ALSO patch findProgramAddressSync to add toBuffer to its programId parameter
-    const originalFindProgramAddressSync = PK.findProgramAddressSync;
-    if (originalFindProgramAddressSync) {
-      PK.findProgramAddressSync = function(seeds: any[], programId: any) {
-        addToBuffer(programId);
-        return originalFindProgramAddressSync.call(this, seeds, programId);
-      };
-    }
-  };
-
   const handlePrivatePayment = async () => {
     if (!publicKey || !signMessage || !signTransaction) {
       throw new Error('Wallet does not support signing');
@@ -220,39 +166,9 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Patch PublicKey from our import
-      const web3Main = await import('@solana/web3.js');
-      patchPublicKey(web3Main.PublicKey);
-      console.log('[patch] Patched main PublicKey');
-      
-      // Dynamic import Privacy Cash SDK  
+      // Dynamic import Privacy Cash SDK (webpack redirects @solana/web3.js to our patched version)
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
-      const { PublicKey } = await import('@solana/web3.js');
-      
-      // Create a PublicKey with working toBuffer
-      const createPubkeyWithToBuffer = (address: string) => {
-        const pk = new PublicKey(address);
-        // Use toBytes() which always exists, wrapped in Buffer.from()
-        (pk as any).toBuffer = function(): Buffer {
-          return Buffer.from(this.toBytes());
-        };
-        return pk;
-      };
-      
-      // REPLACE the entire tokens array with our patched version
-      const patchedTokens = [
-        { name: 'sol', pubkey: createPubkeyWithToBuffer('So11111111111111111111111111111111111111112'), prefix: '', units_per_token: 1e9 },
-        { name: 'usdc', pubkey: createPubkeyWithToBuffer('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), prefix: 'usdc_', units_per_token: 1e6 },
-        { name: 'usdt', pubkey: createPubkeyWithToBuffer('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), prefix: 'usdt_', units_per_token: 1e6 },
-      ];
-      
-      // Replace the SDK's tokens array
-      if (utils.tokens && Array.isArray(utils.tokens)) {
-        utils.tokens.length = 0; // Clear existing
-        utils.tokens.push(...patchedTokens); // Add our patched versions
-        console.log('[patch] Replaced tokens array with patched version');
-      }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
@@ -314,10 +230,6 @@ export default function PayPage() {
 
       setStatus('confirming');
 
-      // Re-patch before withdraw in case a different PublicKey class is used
-      patchPublicKey(web3Main.PublicKey);
-      console.log('[runtime] Re-patching before withdraw');
-
       // Step 2: Withdraw to merchant (anonymously)
       let withdrawResult;
       if (link.currency === 'SOL') {
@@ -333,20 +245,6 @@ export default function PayPage() {
         });
       } else {
         const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-        
-        // Find USDC token and verify toBuffer exists
-        const usdcToken = utils.tokens?.find((t: any) => t.name === 'usdc');
-        console.log('[withdrawSPL] USDC token found:', !!usdcToken);
-        if (usdcToken?.pubkey) {
-          console.log('[withdrawSPL] USDC pubkey.toBuffer exists:', typeof usdcToken.pubkey.toBuffer);
-          // Test if toBuffer works
-          try {
-            const buf = usdcToken.pubkey.toBuffer();
-            console.log('[withdrawSPL] USDC toBuffer test SUCCESS, length:', buf.length);
-          } catch (e: any) {
-            console.log('[withdrawSPL] USDC toBuffer test FAILED:', e.message);
-          }
-        }
         
         withdrawResult = await withdrawSPL({
           connection,
