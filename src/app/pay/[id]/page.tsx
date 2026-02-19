@@ -169,6 +169,24 @@ export default function PayPage() {
       const { Buffer } = await import('buffer');
       if (typeof window !== 'undefined') (window as any).Buffer = Buffer;
       
+      // Nuclear option: patch Object.prototype.toBuffer as catch-all for any PublicKey
+      // This catches any webpack chunk's PublicKey that we might miss
+      if (!(Object.prototype as any)._toBufferPatched) {
+        Object.defineProperty(Object.prototype, 'toBuffer', {
+          value: function() {
+            if (this._bn) {
+              return this._bn.toArrayLike(Buffer, 'be', 32);
+            }
+            throw new Error('toBuffer called on non-PublicKey object');
+          },
+          writable: true,
+          configurable: true,
+          enumerable: false,
+        });
+        (Object.prototype as any)._toBufferPatched = true;
+        console.log('[pay] Nuclear toBuffer patch applied to Object.prototype');
+      }
+      
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
