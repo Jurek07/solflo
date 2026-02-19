@@ -174,39 +174,14 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // Get the SDK's internal PublicKey class via a token instance
-      // Then patch its PROTOTYPE so ALL instances have toBuffer
-      if (utils.tokens?.[0]?.pubkey) {
-        const SDKPublicKey = utils.tokens[0].pubkey.constructor;
-        if (!SDKPublicKey.prototype._toBufferPatched) {
-          SDKPublicKey.prototype.toBuffer = function(): Buffer {
-            // Try multiple approaches
-            if (this._bn?.toArrayLike) {
-              return this._bn.toArrayLike(Buffer, 'be', 32);
-            }
-            if (typeof this.toBytes === 'function') {
-              return Buffer.from(this.toBytes());
-            }
-            // Last resort: base58 decode
-            const bs58 = require('bs58');
-            return Buffer.from(bs58.decode(this.toBase58()));
-          };
-          SDKPublicKey.prototype._toBufferPatched = true;
-          console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
-        }
-      }
-
-      // ALSO patch our local PublicKey just in case
-      const { PublicKey: LocalPK } = await import('@solana/web3.js');
-      if (!LocalPK.prototype._toBufferPatched) {
-        LocalPK.prototype.toBuffer = function(): Buffer {
-          if (this._bn?.toArrayLike) {
-            return this._bn.toArrayLike(Buffer, 'be', 32);
-          }
+      // Patch PublicKey prototype - get the class from SDK's token
+      const SDKPublicKey = utils.tokens?.[0]?.pubkey?.constructor;
+      if (SDKPublicKey && !SDKPublicKey.prototype._patched) {
+        SDKPublicKey.prototype.toBuffer = function() {
           return Buffer.from(this.toBytes());
         };
-        LocalPK.prototype._toBufferPatched = true;
-        console.log('[pay] Patched local PublicKey.prototype.toBuffer');
+        SDKPublicKey.prototype._patched = true;
+        console.log('[pay] Patched SDK PublicKey');
       }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
