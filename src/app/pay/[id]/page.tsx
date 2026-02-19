@@ -166,13 +166,20 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
+      console.log('[pay] Step 1: importing buffer');
       const { Buffer } = await import('buffer');
       // Make Buffer global
       if (typeof window !== 'undefined') (window as any).Buffer = Buffer;
+      console.log('[pay] Step 2: Buffer ready');
       
       // Dynamic import Privacy Cash SDK
+      console.log('[pay] Step 3: importing privacycash/utils');
       const utils: any = await import('privacycash/utils');
+      console.log('[pay] Step 4: privacycash loaded');
+      
+      console.log('[pay] Step 5: importing hasher');
       const hasher: any = await import('@lightprotocol/hasher.rs');
+      console.log('[pay] Step 6: hasher loaded');
       
       // Patch PublicKey prototype - get the class from SDK's token
       const SDKPublicKey = utils.tokens?.[0]?.pubkey?.constructor;
