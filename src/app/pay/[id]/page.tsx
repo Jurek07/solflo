@@ -166,20 +166,27 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      // Patch PublicKey.toBuffer before using Privacy Cash SDK
       const { Buffer } = await import('buffer');
       const { PublicKey: PK } = await import('@solana/web3.js');
-      if (!(PK.prototype as any).__patched) {
-        (PK.prototype as any).toBuffer = function() {
-          return Buffer.from(this.toBytes());
-        };
-        (PK.prototype as any).__patched = true;
-        console.log('[pay] PublicKey.toBuffer patched');
-      }
-
+      
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
+      
+      // Patch the SDK's tokens array - add toBuffer to each pubkey
+      if (utils.tokens && Array.isArray(utils.tokens)) {
+        for (const token of utils.tokens) {
+          if (token.pubkey && !token.pubkey.toBuffer) {
+            const pk = token.pubkey;
+            pk.toBuffer = function() {
+              if (this.toBytes) return Buffer.from(this.toBytes());
+              if (this._bn?.toArrayLike) return this._bn.toArrayLike(Buffer, 'be', 32);
+              throw new Error('Cannot convert to buffer');
+            };
+            console.log(`[pay] Patched ${token.name} token pubkey`);
+          }
+        }
+      }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
