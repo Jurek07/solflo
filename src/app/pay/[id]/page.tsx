@@ -172,17 +172,17 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // Patch tokens array - this is the SAME object reference used by withdrawSPL internally
-      if (utils.tokens && Array.isArray(utils.tokens)) {
-        for (const token of utils.tokens) {
-          if (token.pubkey) {
-            // Force add toBuffer using _bn which all PublicKey instances have
-            token.pubkey.toBuffer = function(): Buffer {
-              const b = this._bn.toArrayLike(Buffer, 'be', 32);
-              return b;
-            };
-            console.log(`[pay] Patched ${token.name}.pubkey.toBuffer`);
-          }
+      // Get the SDK's internal PublicKey class via a token instance
+      // Then patch its PROTOTYPE so ALL instances have toBuffer
+      if (utils.tokens?.[0]?.pubkey) {
+        const SDKPublicKey = utils.tokens[0].pubkey.constructor;
+        if (!SDKPublicKey.prototype._toBufferPatched) {
+          SDKPublicKey.prototype.toBuffer = function(): Buffer {
+            const b = this._bn.toArrayLike(Buffer, 'be', 32);
+            return b;
+          };
+          SDKPublicKey.prototype._toBufferPatched = true;
+          console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
         }
       }
       
