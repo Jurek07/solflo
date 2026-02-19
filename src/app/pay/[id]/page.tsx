@@ -185,26 +185,6 @@ export default function PayPage() {
         console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
       }
 
-      // Import SDK constants and patch PROGRAM_ID directly (might be different class)
-      const constants: any = await import('privacycash/dist/utils/constants.js').catch(() => null);
-      if (constants?.PROGRAM_ID && !constants.PROGRAM_ID._patched) {
-        constants.PROGRAM_ID.toBuffer = function(): Buffer {
-          return this._bn.toArrayLike(Buffer, 'be', 32);
-        };
-        constants.PROGRAM_ID._patched = true;
-        console.log('[pay] Patched PROGRAM_ID.toBuffer');
-        
-        // Also patch its prototype if different
-        const ProgramIDClass = constants.PROGRAM_ID.constructor;
-        if (ProgramIDClass && !ProgramIDClass.prototype._patched) {
-          ProgramIDClass.prototype.toBuffer = function(): Buffer {
-            return this._bn.toArrayLike(Buffer, 'be', 32);
-          };
-          ProgramIDClass.prototype._patched = true;
-          console.log('[pay] Patched PROGRAM_ID class prototype');
-        }
-      }
-
       // ALSO patch the PublicKey from our direct import (might be different class in webpack chunks)
       const { PublicKey: LocalPK } = await import('@solana/web3.js');
       if (!(LocalPK.prototype as any)._patched) {
