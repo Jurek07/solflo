@@ -161,14 +161,28 @@ export default function PayPage() {
   // Helper to add toBuffer to any object that looks like a PublicKey
   const addToBuffer = (obj: any) => {
     if (obj && !obj.toBuffer) {
-      obj.toBuffer = function() {
-        const bn = (this as any)._bn;
-        if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-        if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-        const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
-        if (bytes) return Buffer.from(bytes);
-        throw new Error('Cannot convert to Buffer');
-      };
+      Object.defineProperty(obj, 'toBuffer', {
+        value: function() {
+          const bn = (this as any)._bn;
+          if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+          if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+          const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
+          if (bytes) return Buffer.from(bytes);
+          throw new Error('Cannot convert to Buffer');
+        },
+        writable: true,
+        configurable: true,
+        enumerable: false
+      });
+    }
+  };
+  
+  // Globally patch all PublicKey-like objects by intercepting property access
+  const patchGlobally = () => {
+    // Try to find and patch any PublicKey prototype we can access
+    if (typeof window !== 'undefined') {
+      const modules = (window as any).__NEXT_DATA__?.props?.pageProps || {};
+      // Look for any object with _bn property and add toBuffer
     }
   };
 
@@ -215,33 +229,40 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // CRITICAL FIX: Directly modify each token's pubkey in the tokens array
-      // The SDK's tokens array is the source of truth - we must patch these specific objects
-      console.log('[patch] utils.tokens exists:', !!utils.tokens, 'length:', utils.tokens?.length);
-      if (utils.tokens && Array.isArray(utils.tokens)) {
-        for (let i = 0; i < utils.tokens.length; i++) {
-          const token = utils.tokens[i];
-          if (token?.pubkey) {
-            // Create toBuffer function for this specific pubkey instance
-            const pubkey = token.pubkey;
-            pubkey.toBuffer = function(): Buffer {
-              const bn = (this as any)._bn;
-              if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-              if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-              const bytes = (this as any)._key || (this as any).bytes;
-              if (bytes) return Buffer.from(bytes);
-              // Fallback: try toBytes and convert
-              if (typeof this.toBytes === 'function') {
-                return Buffer.from(this.toBytes());
-              }
-              throw new Error('Cannot convert PublicKey to Buffer');
-            };
-            console.log('[patch] Patched token.pubkey.toBuffer for:', token.name, 'has toBuffer:', typeof pubkey.toBuffer);
-          }
-        }
+      // Helper to patch a pubkey object
+      const patchPubkey = (pubkey: any, label: string) => {
+        if (!pubkey) return;
+        const toBufferFn = function(this: any): Buffer {
+          const bn = this._bn;
+          if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+          if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+          if (typeof this.toBytes === 'function') return Buffer.from(this.toBytes());
+          throw new Error('Cannot convert to Buffer');
+        };
+        Object.defineProperty(pubkey, 'toBuffer', {
+          value: toBufferFn,
+          writable: true,
+          configurable: true
+        });
+        console.log(`[patch] ${label} toBuffer:`, typeof pubkey.toBuffer);
+      };
+      
+      // Patch all tokens
+      console.log('[patch] Patching tokens, count:', utils.tokens?.length);
+      for (const token of (utils.tokens || [])) {
+        patchPubkey(token?.pubkey, `token:${token?.name}`);
       }
       
-      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
+      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL: originalWithdrawSPL } = utils;
+      
+      // Wrap withdrawSPL to ensure patches are applied
+      const withdrawSPL = async (params: any) => {
+        // Re-patch all tokens right before call
+        for (const token of (utils.tokens || [])) {
+          patchPubkey(token?.pubkey, `pre-withdraw:${token?.name}`);
+        }
+        return originalWithdrawSPL(params);
+      };
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
 
       const lightWasm = await WasmFactory.getInstance();
