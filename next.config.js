@@ -32,26 +32,6 @@ const nextConfig = {
         'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
       };
 
-      // Intercept ALL @solana/web3.js imports and redirect to our patched version
-      // Use regex that catches both exact imports AND subpath imports
-      const patchedWeb3Path = require.resolve('./src/lib/web3-patched.ts');
-      config.plugins.push(
-        new webpack.NormalModuleReplacementPlugin(
-          /^@solana\/web3\.js(\/.*)?$/,
-          (resource) => {
-            // Don't redirect imports from our patched module (to avoid circular)
-            if (resource.context && resource.context.includes('web3-patched')) {
-              return;
-            }
-            // Don't redirect subpath imports (our patched module needs to import the real one)
-            if (resource.request !== '@solana/web3.js') {
-              return;
-            }
-            resource.request = patchedWeb3Path;
-          }
-        )
-      );
-
       // Add plugin to provide Buffer and process globally
       config.plugins.push(
         new webpack.ProvidePlugin({
