@@ -2,7 +2,8 @@
 
 Payment links for Solana with optional end-to-end privacy.
 
-**Live:** https://solflolab.com
+**Live:** https://solflolab.com  
+**Android App:** Available on Solana dApp Store (Seeker)
 
 ## Features
 
@@ -10,8 +11,9 @@ Payment links for Solana with optional end-to-end privacy.
 - 💸 **Zero Fees** — Direct wallet-to-wallet transfers (only network fees)
 - 🔒 **Non-Custodial** — Funds go directly to your wallet
 - 🪙 **SOL & USDC** — Accept either currency
-- 🔐 **Private Payments** — Optional ZK-powered privacy (sender AND receiver anonymous)
+- 🔐 **Private Payments** — Optional ZK-powered privacy for SOL (sender AND receiver anonymous)
 - 🔗 **Single-Use Links** — Auto-expire after one payment
+- 📱 **Native Mobile App** — React Native app for Android (Solana Mobile)
 
 ## How It Works
 
@@ -29,10 +31,13 @@ SolFloLab is the first Solana payment link service with **privacy on both ends**
 - Receiver wallet: Hidden
 - Powered by zero-knowledge proofs via [Privacy Cash SDK](https://privacycash.org)
 
+> **Note:** Private payments are currently available for **SOL only**. USDC support coming soon.
+
 Privacy fees (paid by sender): 0.008 SOL + 0.35% of amount
 
 ## Tech Stack
 
+### Web App
 - **Framework:** Next.js 14 (App Router)
 - **Styling:** Tailwind CSS
 - **Database:** Supabase (PostgreSQL)
@@ -41,6 +46,12 @@ Privacy fees (paid by sender): 0.008 SOL + 0.35% of amount
 - **RPC:** Helius
 - **Hosting:** Vercel
 
+### Mobile App
+- **Framework:** React Native + Expo
+- **Wallet:** Solana Mobile Wallet Adapter
+- **Navigation:** React Navigation
+- **Package:** `com.solflolab.app`
+
 ## Getting Started
 
 ### Prerequisites
@@ -48,7 +59,7 @@ Privacy fees (paid by sender): 0.008 SOL + 0.35% of amount
 - Node.js 18+
 - npm
 
-### Installation
+### Web App Installation
 
 ```bash
 git clone https://github.com/Jurek07/solflo.git
@@ -77,22 +88,46 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+### Mobile App Development
+
+```bash
+cd native
+npm install
+npx expo start
+```
+
+### Building Android APK
+
+```bash
+cd native
+npm install
+npx expo prebuild --platform android
+cd android
+./gradlew app:assembleRelease
+```
+
+APK location: `native/android/app/build/outputs/apk/release/app-release.apk`
+
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── page.tsx           # Landing page
-│   ├── dashboard/         # Merchant dashboard
-│   └── pay/[id]/          # Payment page
-├── components/
-│   ├── Providers.tsx      # Wallet providers
-│   ├── CreateLinkModal.tsx
-│   ├── LinkCard.tsx
-│   └── Logo.tsx
-└── lib/
-    ├── solana.ts          # Solana transaction helpers
-    └── supabase.ts        # Database operations
+solflo/
+├── src/                    # Next.js web app
+│   ├── app/
+│   │   ├── page.tsx        # Landing page
+│   │   ├── dashboard/      # Merchant dashboard
+│   │   └── pay/[id]/       # Payment page
+│   ├── components/
+│   └── lib/
+├── native/                 # React Native mobile app
+│   ├── src/
+│   │   ├── screens/        # App screens
+│   │   ├── components/     # UI components
+│   │   ├── contexts/       # Wallet context
+│   │   └── lib/            # Utils & Supabase
+│   └── android/            # Android build files
+├── android/                # Capacitor (legacy)
+└── public/                 # Static assets & circuit files
 ```
 
 ## Built By
@@ -106,6 +141,7 @@ The entire codebase — from architecture decisions to webpack WASM bundling fix
 - **Website:** https://solflolab.com
 - **Twitter/X:** https://x.com/SolFloLab
 - **Builder:** https://x.com/JurekSol
+- **AI Agent:** Built with [OpenClaw](https://openclaw.ai)
 
 ## License
 
