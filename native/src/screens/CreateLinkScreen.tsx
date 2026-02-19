@@ -150,7 +150,11 @@ export function CreateLinkScreen({ navigation }: Props) {
                       styles.currencyOption,
                       currency === 'USDC' && styles.currencyOptionActive,
                     ]}
-                    onPress={() => setCurrency('USDC')}
+                    onPress={() => {
+                      setCurrency('USDC');
+                      // Disable private payment for USDC (not yet supported)
+                      setPrivatePayment(false);
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text
@@ -204,26 +208,29 @@ export function CreateLinkScreen({ navigation }: Props) {
               />
             </View>
 
-            <View style={[styles.option, styles.optionLast]}>
+            <View style={[styles.option, styles.optionLast, currency === 'USDC' && styles.optionDisabled]}>
               <View style={styles.optionIcon}>
-                <LockIcon size={22} color={COLORS.primary} />
+                <LockIcon size={22} color={currency === 'USDC' ? COLORS.textMuted : COLORS.primary} />
               </View>
               <View style={styles.optionInfo}>
-                <Text style={styles.optionLabel}>Private Payment</Text>
+                <Text style={[styles.optionLabel, currency === 'USDC' && styles.optionLabelDisabled]}>
+                  Private Payment
+                </Text>
                 <Text style={styles.optionDesc}>
-                  Hide sender & receiver (ZK)
+                  {currency === 'USDC' ? 'Only available for SOL' : 'Hide sender & receiver (ZK)'}
                 </Text>
               </View>
               <Switch
                 value={privatePayment}
-                onValueChange={setPrivatePayment}
+                onValueChange={(value) => currency === 'SOL' && setPrivatePayment(value)}
+                disabled={currency === 'USDC'}
                 trackColor={{ false: COLORS.border, true: COLORS.primary + '60' }}
                 thumbColor={privatePayment ? COLORS.primary : COLORS.textSecondary}
                 ios_backgroundColor={COLORS.border}
               />
             </View>
 
-            {privatePayment && (
+            {privatePayment && currency === 'SOL' && (
               <View style={styles.privacyNote}>
                 <Text style={styles.privacyNoteText}>
                   Privacy fee: 0.008 SOL + 0.35% (paid by sender)
@@ -358,6 +365,12 @@ const styles = StyleSheet.create({
   },
   optionLast: {
     borderBottomWidth: 0,
+  },
+  optionDisabled: {
+    opacity: 0.5,
+  },
+  optionLabelDisabled: {
+    color: COLORS.textMuted,
   },
   optionIcon: {
     width: 44,
