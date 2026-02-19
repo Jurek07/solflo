@@ -274,7 +274,10 @@ export default function PayPage() {
           encryptionService,
         });
       } else {
-        const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        // Use token.pubkey from SDK's tokens array (same class, already patched)
+        const usdcToken = utils.tokens.find((t: any) => t.name === 'usdc');
+        if (!usdcToken) throw new Error('USDC token not found in SDK');
+        
         await depositSPL({
           referrer: '',
           lightWasm,
@@ -287,7 +290,7 @@ export default function PayPage() {
           },
           storage: localStorage,
           encryptionService,
-          mintAddress: USDC_MINT,
+          mintAddress: usdcToken.pubkey,
         });
       }
 
@@ -307,7 +310,9 @@ export default function PayPage() {
           lightWasm,
         });
       } else {
-        const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        // Use token.pubkey from SDK's tokens array (same class, already patched)
+        const usdcToken = utils.tokens.find((t: any) => t.name === 'usdc');
+        if (!usdcToken) throw new Error('USDC token not found in SDK');
         
         withdrawResult = await withdrawSPL({
           connection,
@@ -317,7 +322,7 @@ export default function PayPage() {
           storage: localStorage,
           recipient: link.merchantWallet,
           lightWasm,
-          mintAddress: USDC_MINT,
+          mintAddress: usdcToken.pubkey,
           amount: amountInSmallestUnit,
         });
       }
