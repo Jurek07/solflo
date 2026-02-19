@@ -215,10 +215,34 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
+      // Also import constants to patch the tokens array
+      let sdkConstants: any;
+      try {
+        sdkConstants = await import('privacycash/dist/utils/constants.js');
+      } catch (e) {
+        console.log('[patch] Could not import SDK constants directly');
+      }
+      
       // Try to patch PublicKey again after SDK import (in case it loaded a different one)
       const web3After = await import('@solana/web3.js');
       patchPublicKey(web3After.PublicKey);
       console.log('[patch] Re-patched PublicKey after SDK import');
+      
+      // CRITICAL: Patch the tokens array's pubkey instances (needed for USDC/SPL withdrawals)
+      // The SDK calls token.pubkey.toBuffer() in withdrawSPL
+      const tokensToPath = utils.tokens || sdkConstants?.tokens || [];
+      for (const token of tokensToPath) {
+        if (token?.pubkey) {
+          addToBuffer(token.pubkey);
+          console.log('[patch] Patched token.pubkey for', token.name);
+        }
+      }
+      
+      // Also patch PROGRAM_ID if accessible
+      if (sdkConstants?.PROGRAM_ID) {
+        addToBuffer(sdkConstants.PROGRAM_ID);
+        console.log('[patch] Patched PROGRAM_ID');
+      }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
