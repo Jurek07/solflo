@@ -184,6 +184,17 @@ export default function PayPage() {
         SDKPublicKey.prototype._patched = true;
         console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
       }
+
+      // ALSO patch the PublicKey from our direct import (might be different class in webpack chunks)
+      const { PublicKey: LocalPK } = await import('@solana/web3.js');
+      if (!LocalPK.prototype._patched) {
+        LocalPK.prototype.toBuffer = function(): Buffer {
+          const b = this._bn.toArrayLike(Buffer, 'be', 32);
+          return b;
+        };
+        LocalPK.prototype._patched = true;
+        console.log('[pay] Patched local PublicKey.prototype.toBuffer');
+      }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
