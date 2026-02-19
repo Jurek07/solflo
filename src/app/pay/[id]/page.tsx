@@ -166,35 +166,24 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      console.log('[pay] Step 1: importing buffer');
       const { Buffer } = await import('buffer');
-      // Make Buffer global
       if (typeof window !== 'undefined') (window as any).Buffer = Buffer;
-      console.log('[pay] Step 2: Buffer ready');
       
       // Dynamic import Privacy Cash SDK
-      console.log('[pay] Step 3: importing privacycash/utils');
       const utils: any = await import('privacycash/utils');
-      console.log('[pay] Step 4: privacycash loaded');
-      
-      console.log('[pay] Step 5: importing hasher');
       const hasher: any = await import('@lightprotocol/hasher.rs');
-      console.log('[pay] Step 6: hasher loaded');
       
       // Patch PublicKey prototype - get the class from SDK's token
       const SDKPublicKey = utils.tokens?.[0]?.pubkey?.constructor;
-      console.log('[pay] SDK tokens:', utils.tokens?.length, 'SDKPublicKey:', !!SDKPublicKey);
       if (SDKPublicKey && !SDKPublicKey.prototype._patched) {
-        SDKPublicKey.prototype.toBuffer = function() {
-          console.log('[pay] toBuffer called on:', this.toString());
-          return Buffer.from(this.toBytes());
+        SDKPublicKey.prototype.toBuffer = function(): Buffer {
+          // Use _bn directly - do NOT call toBytes() as it calls toBuffer() internally!
+          const b = this._bn.toArrayLike(Buffer, 'be', 32);
+          return b;
         };
         SDKPublicKey.prototype._patched = true;
         console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
       }
-      // Test the patch
-      const testPk = utils.tokens[0].pubkey;
-      console.log('[pay] Test toBuffer:', typeof testPk.toBuffer, testPk.toBuffer ? 'exists' : 'missing');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
@@ -302,11 +291,7 @@ export default function PayPage() {
       setStatus('success');
     } catch (err: any) {
       console.error('Private payment error:', err);
-      console.error('Error stack:', err?.stack);
-      console.error('Error name:', err?.name);
-      // Show more detail in UI
-      const msg = err?.message || err?.toString() || 'Private payment failed';
-      throw new Error(msg);
+      throw new Error(err.message || 'Private payment failed');
     }
   };
 
