@@ -225,44 +225,36 @@ export default function PayPage() {
       patchPublicKey(web3Main.PublicKey);
       console.log('[patch] Patched main PublicKey');
       
-      // Dynamic import Privacy Cash SDK
+      // Dynamic import Privacy Cash SDK  
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
+      const { PublicKey } = await import('@solana/web3.js');
       
-      // Helper to patch a pubkey object
-      const patchPubkey = (pubkey: any, label: string) => {
-        if (!pubkey) return;
-        const toBufferFn = function(this: any): Buffer {
-          const bn = this._bn;
-          if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-          if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-          if (typeof this.toBytes === 'function') return Buffer.from(this.toBytes());
-          throw new Error('Cannot convert to Buffer');
+      // Create a PublicKey with working toBuffer
+      const createPubkeyWithToBuffer = (address: string) => {
+        const pk = new PublicKey(address);
+        // Use toBytes() which always exists, wrapped in Buffer.from()
+        (pk as any).toBuffer = function(): Buffer {
+          return Buffer.from(this.toBytes());
         };
-        Object.defineProperty(pubkey, 'toBuffer', {
-          value: toBufferFn,
-          writable: true,
-          configurable: true
-        });
-        console.log(`[patch] ${label} toBuffer:`, typeof pubkey.toBuffer);
+        return pk;
       };
       
-      // Patch all tokens
-      console.log('[patch] Patching tokens, count:', utils.tokens?.length);
-      for (const token of (utils.tokens || [])) {
-        patchPubkey(token?.pubkey, `token:${token?.name}`);
+      // REPLACE the entire tokens array with our patched version
+      const patchedTokens = [
+        { name: 'sol', pubkey: createPubkeyWithToBuffer('So11111111111111111111111111111111111111112'), prefix: '', units_per_token: 1e9 },
+        { name: 'usdc', pubkey: createPubkeyWithToBuffer('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), prefix: 'usdc_', units_per_token: 1e6 },
+        { name: 'usdt', pubkey: createPubkeyWithToBuffer('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), prefix: 'usdt_', units_per_token: 1e6 },
+      ];
+      
+      // Replace the SDK's tokens array
+      if (utils.tokens && Array.isArray(utils.tokens)) {
+        utils.tokens.length = 0; // Clear existing
+        utils.tokens.push(...patchedTokens); // Add our patched versions
+        console.log('[patch] Replaced tokens array with patched version');
       }
       
-      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL: originalWithdrawSPL } = utils;
-      
-      // Wrap withdrawSPL to ensure patches are applied
-      const withdrawSPL = async (params: any) => {
-        // Re-patch all tokens right before call
-        for (const token of (utils.tokens || [])) {
-          patchPubkey(token?.pubkey, `pre-withdraw:${token?.name}`);
-        }
-        return originalWithdrawSPL(params);
-      };
+      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
 
       const lightWasm = await WasmFactory.getInstance();
