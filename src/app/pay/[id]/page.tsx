@@ -215,27 +215,30 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // Try to patch PublicKey again after SDK import (in case it loaded a different one)
-      const web3After = await import('@solana/web3.js');
-      patchPublicKey(web3After.PublicKey);
-      console.log('[patch] Re-patched PublicKey after SDK import');
-      
-      // CRITICAL: Patch the tokens array's pubkey instances (needed for USDC/SPL withdrawals)
-      // The SDK calls token.pubkey.toBuffer() in withdrawSPL
-      // The tokens array should be exported from privacycash/utils
+      // CRITICAL FIX: Directly modify each token's pubkey in the tokens array
+      // The SDK's tokens array is the source of truth - we must patch these specific objects
+      console.log('[patch] utils.tokens exists:', !!utils.tokens, 'length:', utils.tokens?.length);
       if (utils.tokens && Array.isArray(utils.tokens)) {
-        for (const token of utils.tokens) {
+        for (let i = 0; i < utils.tokens.length; i++) {
+          const token = utils.tokens[i];
           if (token?.pubkey) {
-            addToBuffer(token.pubkey);
-            console.log('[patch] Patched token.pubkey for', token.name);
+            // Create toBuffer function for this specific pubkey instance
+            const pubkey = token.pubkey;
+            pubkey.toBuffer = function(): Buffer {
+              const bn = (this as any)._bn;
+              if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+              if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+              const bytes = (this as any)._key || (this as any).bytes;
+              if (bytes) return Buffer.from(bytes);
+              // Fallback: try toBytes and convert
+              if (typeof this.toBytes === 'function') {
+                return Buffer.from(this.toBytes());
+              }
+              throw new Error('Cannot convert PublicKey to Buffer');
+            };
+            console.log('[patch] Patched token.pubkey.toBuffer for:', token.name, 'has toBuffer:', typeof pubkey.toBuffer);
           }
         }
-      }
-      
-      // Also patch PROGRAM_ID if accessible
-      if (utils.PROGRAM_ID) {
-        addToBuffer(utils.PROGRAM_ID);
-        console.log('[patch] Patched PROGRAM_ID');
       }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
@@ -318,25 +321,17 @@ export default function PayPage() {
       } else {
         const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
         
-        // CRITICAL: Re-patch tokens right before withdrawSPL
-        // The SDK uses token.pubkey.toBuffer() internally
-        console.log('[patch] Patching tokens before withdrawSPL, tokens available:', !!utils.tokens);
-        if (utils.tokens) {
-          for (const token of utils.tokens) {
-            if (token?.pubkey) {
-              // Force add toBuffer to this specific instance
-              if (!token.pubkey.toBuffer || typeof token.pubkey.toBuffer !== 'function') {
-                token.pubkey.toBuffer = function() {
-                  const bn = (this as any)._bn;
-                  if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
-                  if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
-                  const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
-                  if (bytes) return Buffer.from(bytes);
-                  throw new Error('Cannot convert PublicKey to Buffer');
-                };
-                console.log('[patch] Added toBuffer to token:', token.name);
-              }
-            }
+        // Find USDC token and verify toBuffer exists
+        const usdcToken = utils.tokens?.find((t: any) => t.name === 'usdc');
+        console.log('[withdrawSPL] USDC token found:', !!usdcToken);
+        if (usdcToken?.pubkey) {
+          console.log('[withdrawSPL] USDC pubkey.toBuffer exists:', typeof usdcToken.pubkey.toBuffer);
+          // Test if toBuffer works
+          try {
+            const buf = usdcToken.pubkey.toBuffer();
+            console.log('[withdrawSPL] USDC toBuffer test SUCCESS, length:', buf.length);
+          } catch (e: any) {
+            console.log('[withdrawSPL] USDC toBuffer test FAILED:', e.message);
           }
         }
         
