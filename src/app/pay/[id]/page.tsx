@@ -317,6 +317,29 @@ export default function PayPage() {
         });
       } else {
         const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        
+        // CRITICAL: Re-patch tokens right before withdrawSPL
+        // The SDK uses token.pubkey.toBuffer() internally
+        console.log('[patch] Patching tokens before withdrawSPL, tokens available:', !!utils.tokens);
+        if (utils.tokens) {
+          for (const token of utils.tokens) {
+            if (token?.pubkey) {
+              // Force add toBuffer to this specific instance
+              if (!token.pubkey.toBuffer || typeof token.pubkey.toBuffer !== 'function') {
+                token.pubkey.toBuffer = function() {
+                  const bn = (this as any)._bn;
+                  if (bn?.toArrayLike) return bn.toArrayLike(Buffer, 'be', 32);
+                  if (bn?.toArray) return Buffer.from(bn.toArray('be', 32));
+                  const bytes = (this as any)._key || (this as any).bytes || (this as any).toBytes?.();
+                  if (bytes) return Buffer.from(bytes);
+                  throw new Error('Cannot convert PublicKey to Buffer');
+                };
+                console.log('[patch] Added toBuffer to token:', token.name);
+              }
+            }
+          }
+        }
+        
         withdrawResult = await withdrawSPL({
           connection,
           encryptionService,
