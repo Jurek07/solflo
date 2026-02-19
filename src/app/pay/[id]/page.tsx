@@ -176,13 +176,18 @@ export default function PayPage() {
       
       // Patch PublicKey prototype - get the class from SDK's token
       const SDKPublicKey = utils.tokens?.[0]?.pubkey?.constructor;
+      console.log('[pay] SDK tokens:', utils.tokens?.length, 'SDKPublicKey:', !!SDKPublicKey);
       if (SDKPublicKey && !SDKPublicKey.prototype._patched) {
         SDKPublicKey.prototype.toBuffer = function() {
+          console.log('[pay] toBuffer called on:', this.toString());
           return Buffer.from(this.toBytes());
         };
         SDKPublicKey.prototype._patched = true;
-        console.log('[pay] Patched SDK PublicKey');
+        console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
       }
+      // Test the patch
+      const testPk = utils.tokens[0].pubkey;
+      console.log('[pay] Test toBuffer:', typeof testPk.toBuffer, testPk.toBuffer ? 'exists' : 'missing');
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
@@ -290,7 +295,11 @@ export default function PayPage() {
       setStatus('success');
     } catch (err: any) {
       console.error('Private payment error:', err);
-      throw new Error(err.message || 'Private payment failed');
+      console.error('Error stack:', err?.stack);
+      console.error('Error name:', err?.name);
+      // Show more detail in UI
+      const msg = err?.message || err?.toString() || 'Private payment failed';
+      throw new Error(msg);
     }
   };
 
