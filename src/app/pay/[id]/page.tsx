@@ -187,12 +187,12 @@ export default function PayPage() {
 
       // ALSO patch the PublicKey from our direct import (might be different class in webpack chunks)
       const { PublicKey: LocalPK } = await import('@solana/web3.js');
-      if (!LocalPK.prototype._patched) {
-        LocalPK.prototype.toBuffer = function(): Buffer {
-          const b = this._bn.toArrayLike(Buffer, 'be', 32);
+      if (!(LocalPK.prototype as any)._patched) {
+        (LocalPK.prototype as any).toBuffer = function(): Buffer {
+          const b = (this as any)._bn.toArrayLike(Buffer, 'be', 32);
           return b;
         };
-        LocalPK.prototype._patched = true;
+        (LocalPK.prototype as any)._patched = true;
         console.log('[pay] Patched local PublicKey.prototype.toBuffer');
       }
       
