@@ -321,7 +321,7 @@ export default function PayPage() {
           recipient: link.merchantWallet,
           lightWasm,
           mintAddress: usdcToken.pubkey,
-          amount: amountInSmallestUnit,
+          base_units: amountInSmallestUnit,
         });
       }
 
