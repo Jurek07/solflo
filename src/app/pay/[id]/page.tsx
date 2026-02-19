@@ -173,17 +173,33 @@ export default function PayPage() {
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // Patch the SDK's tokens array - add toBuffer to each pubkey
+      // Helper to add toBuffer to any PublicKey-like object
+      const addToBuffer = (obj: any, label: string) => {
+        if (!obj) return;
+        obj.toBuffer = function(): Buffer {
+          if (typeof this.toBytes === 'function') {
+            return Buffer.from(this.toBytes());
+          }
+          if (this._bn?.toArrayLike) {
+            return this._bn.toArrayLike(Buffer, 'be', 32);
+          }
+          // Fallback: convert via string
+          return Buffer.from(new PK(this.toString()).toBytes());
+        };
+        console.log(`[pay] Patched ${label}.toBuffer`);
+      };
+
+      // Patch all SDK constants that are PublicKeys
+      if (utils.PROGRAM_ID) addToBuffer(utils.PROGRAM_ID, 'PROGRAM_ID');
+      if (utils.FEE_RECIPIENT) addToBuffer(utils.FEE_RECIPIENT, 'FEE_RECIPIENT');
+      if (utils.ALT_ADDRESS) addToBuffer(utils.ALT_ADDRESS, 'ALT_ADDRESS');
+      if (utils.USDC_MINT) addToBuffer(utils.USDC_MINT, 'USDC_MINT');
+
+      // Patch the SDK's tokens array
       if (utils.tokens && Array.isArray(utils.tokens)) {
         for (const token of utils.tokens) {
-          if (token.pubkey && !token.pubkey.toBuffer) {
-            const pk = token.pubkey;
-            pk.toBuffer = function() {
-              if (this.toBytes) return Buffer.from(this.toBytes());
-              if (this._bn?.toArrayLike) return this._bn.toArrayLike(Buffer, 'be', 32);
-              throw new Error('Cannot convert to buffer');
-            };
-            console.log(`[pay] Patched ${token.name} token pubkey`);
+          if (token.pubkey) {
+            addToBuffer(token.pubkey, `tokens.${token.name}`);
           }
         }
       }
