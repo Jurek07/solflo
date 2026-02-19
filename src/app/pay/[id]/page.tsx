@@ -167,6 +167,8 @@ export default function PayPage() {
 
     try {
       const { Buffer } = await import('buffer');
+      // Make Buffer global
+      if (typeof window !== 'undefined') (window as any).Buffer = Buffer;
       
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
@@ -178,12 +180,33 @@ export default function PayPage() {
         const SDKPublicKey = utils.tokens[0].pubkey.constructor;
         if (!SDKPublicKey.prototype._toBufferPatched) {
           SDKPublicKey.prototype.toBuffer = function(): Buffer {
-            const b = this._bn.toArrayLike(Buffer, 'be', 32);
-            return b;
+            // Try multiple approaches
+            if (this._bn?.toArrayLike) {
+              return this._bn.toArrayLike(Buffer, 'be', 32);
+            }
+            if (typeof this.toBytes === 'function') {
+              return Buffer.from(this.toBytes());
+            }
+            // Last resort: base58 decode
+            const bs58 = require('bs58');
+            return Buffer.from(bs58.decode(this.toBase58()));
           };
           SDKPublicKey.prototype._toBufferPatched = true;
           console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
         }
+      }
+
+      // ALSO patch our local PublicKey just in case
+      const { PublicKey: LocalPK } = await import('@solana/web3.js');
+      if (!LocalPK.prototype._toBufferPatched) {
+        LocalPK.prototype.toBuffer = function(): Buffer {
+          if (this._bn?.toArrayLike) {
+            return this._bn.toArrayLike(Buffer, 'be', 32);
+          }
+          return Buffer.from(this.toBytes());
+        };
+        LocalPK.prototype._toBufferPatched = true;
+        console.log('[pay] Patched local PublicKey.prototype.toBuffer');
       }
       
       const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
