@@ -27,9 +27,12 @@ const nextConfig = {
       };
 
       // Replace node-localstorage with browser localStorage
+      // Force all @solana/web3.js imports to use the same instance (prevents multiple PublicKey classes)
+      const solanaWeb3Path = require.resolve('@solana/web3.js');
       config.resolve.alias = {
         ...config.resolve.alias,
         'node-localstorage': require.resolve('./src/lib/localstorage-stub.js'),
+        '@solana/web3.js': solanaWeb3Path,
       };
 
       // Add plugin to provide Buffer and process globally
