@@ -151,7 +151,14 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                     <label className="block text-sm text-[#6B6B6B] mb-1.5">Currency</label>
                     <select
                       value={currency}
-                      onChange={(e) => setCurrency(e.target.value as Currency)}
+                      onChange={(e) => {
+                        const newCurrency = e.target.value as Currency;
+                        setCurrency(newCurrency);
+                        // Disable private payment for USDC (not yet supported)
+                        if (newCurrency === 'USDC') {
+                          setPrivatePayment(false);
+                        }
+                      }}
                       className="input"
                     >
                       <option value="SOL">SOL</option>
@@ -195,7 +202,11 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                   </div>
 
                   {/* Private Payment Toggle */}
-                  <div className={`py-3 px-4 bg-black rounded-xl border ${privatePayment ? 'border-purple-500/40' : 'border-purple-500/20'}`}>
+                  <div className={`py-3 px-4 bg-black rounded-xl border ${
+                    currency === 'USDC' 
+                      ? 'border-[#1A1A1A] opacity-50' 
+                      : privatePayment ? 'border-purple-500/40' : 'border-purple-500/20'
+                  }`}>
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium flex items-center gap-2">
@@ -204,14 +215,17 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                           </svg>
                           Private Payment
                         </div>
-                        <div className="text-xs text-[#6B6B6B]">Sender & receiver are anonymous</div>
+                        <div className="text-xs text-[#6B6B6B]">
+                          {currency === 'USDC' ? 'Only available for SOL' : 'Sender & receiver are anonymous'}
+                        </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setPrivatePayment(!privatePayment)}
+                        onClick={() => currency === 'SOL' && setPrivatePayment(!privatePayment)}
+                        disabled={currency === 'USDC'}
                         className={`w-11 h-6 rounded-full transition-colors ${
                           privatePayment ? 'bg-purple-500' : 'bg-[#1A1A1A]'
-                        }`}
+                        } ${currency === 'USDC' ? 'cursor-not-allowed' : ''}`}
                       >
                         <div
                           className={`w-5 h-5 bg-white rounded-full transition-transform ${
@@ -220,7 +234,7 @@ export function CreateLinkModal({ onClose, onCreated, merchantWallet }: CreateLi
                         />
                       </button>
                     </div>
-                    {privatePayment && (
+                    {privatePayment && currency === 'SOL' && (
                       <div className="mt-3 pt-3 border-t border-purple-500/20 text-xs text-[#6B6B6B]">
                         <div className="text-purple-400 mb-1">Privacy fees (paid by sender):</div>
                         <div>• 0.008 SOL + 0.35% of amount</div>

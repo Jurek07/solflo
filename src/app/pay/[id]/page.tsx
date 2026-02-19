@@ -159,6 +159,11 @@ export default function PayPage() {
   };
 
   const handlePrivatePayment = async () => {
+    // Private payments only support SOL
+    if (link.currency !== 'SOL') {
+      throw new Error('Private payments are only available for SOL');
+    }
+
     if (!publicKey || !signMessage || !signTransaction) {
       throw new Error('Wallet does not support signing');
     }
@@ -166,72 +171,11 @@ export default function PayPage() {
     setStatus('initializing');
 
     try {
-      const { Buffer } = await import('buffer');
-      if (typeof window !== 'undefined') (window as any).Buffer = Buffer;
-      
-      // Nuclear option: patch Object.prototype.toBuffer as catch-all for any PublicKey
-      // This catches any webpack chunk's PublicKey that we might miss
-      if (!(Object.prototype as any)._toBufferPatched) {
-        Object.defineProperty(Object.prototype, 'toBuffer', {
-          value: function() {
-            if (this._bn) {
-              return this._bn.toArrayLike(Buffer, 'be', 32);
-            }
-            throw new Error('toBuffer called on non-PublicKey object');
-          },
-          writable: true,
-          configurable: true,
-          enumerable: false,
-        });
-        (Object.prototype as any)._toBufferPatched = true;
-        console.log('[pay] Nuclear toBuffer patch applied to Object.prototype');
-      }
-      
       // Dynamic import Privacy Cash SDK
       const utils: any = await import('privacycash/utils');
       const hasher: any = await import('@lightprotocol/hasher.rs');
       
-      // Patch PublicKey prototype - get the class from SDK's token
-      const SDKPublicKey = utils.tokens?.[0]?.pubkey?.constructor;
-      if (SDKPublicKey && !SDKPublicKey.prototype._patched) {
-        SDKPublicKey.prototype.toBuffer = function(): Buffer {
-          // Use _bn directly - do NOT call toBytes() as it calls toBuffer() internally!
-          const b = this._bn.toArrayLike(Buffer, 'be', 32);
-          return b;
-        };
-        SDKPublicKey.prototype._patched = true;
-        console.log('[pay] Patched SDK PublicKey.prototype.toBuffer');
-      }
-
-      // ALSO patch the PublicKey from our direct import (might be different class in webpack chunks)
-      const { PublicKey: LocalPK } = await import('@solana/web3.js');
-      if (!(LocalPK.prototype as any)._patched) {
-        (LocalPK.prototype as any).toBuffer = function(): Buffer {
-          const b = (this as any)._bn.toArrayLike(Buffer, 'be', 32);
-          return b;
-        };
-        (LocalPK.prototype as any)._patched = true;
-        console.log('[pay] Patched local PublicKey.prototype.toBuffer');
-      }
-
-      // Also try to patch any PublicKey from spl-token (might be yet another instance)
-      try {
-        const splToken = await import('@solana/spl-token');
-        // spl-token re-exports or uses PublicKey internally - try to find it
-        const anyPK = (splToken as any).PublicKey;
-        if (anyPK && !(anyPK.prototype as any)._patched) {
-          (anyPK.prototype as any).toBuffer = function(): Buffer {
-            const b = (this as any)._bn.toArrayLike(Buffer, 'be', 32);
-            return b;
-          };
-          (anyPK.prototype as any)._patched = true;
-          console.log('[pay] Patched spl-token PublicKey.prototype.toBuffer');
-        }
-      } catch (e) {
-        console.log('[pay] spl-token patch skipped:', e);
-      }
-      
-      const { EncryptionService, deposit, withdraw, depositSPL, withdrawSPL } = utils;
+      const { EncryptionService, deposit, withdraw } = utils;
       const WasmFactory = hasher.WasmFactory || hasher.default?.WasmFactory;
 
       const lightWasm = await WasmFactory.getInstance();
@@ -250,80 +194,36 @@ export default function PayPage() {
 
       setStatus('processing');
 
-      const amountInSmallestUnit = link.currency === 'SOL' 
-        ? Math.round(link.amount * LAMPORTS_PER_SOL)
-        : Math.round(link.amount * 1_000_000); // USDC decimals
-
-      // Circuit files served from /public folder
+      const amountInLamports = Math.round(link.amount * LAMPORTS_PER_SOL);
       const circuitBasePath = '/circuit2';
       
       // Step 1: Deposit to private pool
-      if (link.currency === 'SOL') {
-        await deposit({
-          lightWasm,
-          connection,
-          amount_in_lamports: amountInSmallestUnit,
-          keyBasePath: circuitBasePath,
-          publicKey,
-          transactionSigner: async (tx: any) => {
-            return await signTransaction(tx);
-          },
-          storage: localStorage,
-          encryptionService,
-        });
-      } else {
-        // Use token.pubkey from SDK's tokens array (same class, already patched)
-        const usdcToken = utils.tokens.find((t: any) => t.name === 'usdc');
-        if (!usdcToken) throw new Error('USDC token not found in SDK');
-        
-        await depositSPL({
-          referrer: '',
-          lightWasm,
-          connection,
-          base_units: amountInSmallestUnit,
-          keyBasePath: circuitBasePath,
-          publicKey,
-          transactionSigner: async (tx: any) => {
-            return await signTransaction(tx);
-          },
-          storage: localStorage,
-          encryptionService,
-          mintAddress: usdcToken.pubkey,
-        });
-      }
+      await deposit({
+        lightWasm,
+        connection,
+        amount_in_lamports: amountInLamports,
+        keyBasePath: circuitBasePath,
+        publicKey,
+        transactionSigner: async (tx: any) => {
+          return await signTransaction(tx);
+        },
+        storage: localStorage,
+        encryptionService,
+      });
 
       setStatus('confirming');
 
       // Step 2: Withdraw to merchant (anonymously)
-      let withdrawResult;
-      if (link.currency === 'SOL') {
-        withdrawResult = await withdraw({
-          amount_in_lamports: amountInSmallestUnit,
-          connection,
-          encryptionService,
-          keyBasePath: circuitBasePath,
-          publicKey,
-          storage: localStorage,
-          recipient: link.merchantWallet,
-          lightWasm,
-        });
-      } else {
-        // Use token.pubkey from SDK's tokens array (same class, already patched)
-        const usdcToken = utils.tokens.find((t: any) => t.name === 'usdc');
-        if (!usdcToken) throw new Error('USDC token not found in SDK');
-        
-        withdrawResult = await withdrawSPL({
-          connection,
-          encryptionService,
-          keyBasePath: circuitBasePath,
-          publicKey,
-          storage: localStorage,
-          recipient: link.merchantWallet,
-          lightWasm,
-          mintAddress: usdcToken.pubkey,
-          base_units: amountInSmallestUnit,
-        });
-      }
+      const withdrawResult = await withdraw({
+        amount_in_lamports: amountInLamports,
+        connection,
+        encryptionService,
+        keyBasePath: circuitBasePath,
+        publicKey,
+        storage: localStorage,
+        recipient: link.merchantWallet,
+        lightWasm,
+      });
 
       const sig = withdrawResult?.signature || 'private-payment';
       setTxSignature(sig);
